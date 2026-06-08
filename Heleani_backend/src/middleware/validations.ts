@@ -1,36 +1,28 @@
-import {Request, Response, NextFunction} from 'express';
+import { Request, Response, NextFunction } from 'express';
 
-import {z} from 'zod';
+import { z } from 'zod';
 
+// Validations
 export const validateBody = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        try{
+        try {
             const validatedData = schema.parse(req.body);
             req.body = validatedData;
             next();
-        }catch (error) {
-            if (error instanceof z.ZodError) {
-                return res.status(400).json({
-                    message: 'Validation failed',
-                    errors: error.issues
-                });
-            }
+        } catch (error) {
+            handleZodError(res, error, "Validation failed");
+            next(error);
         }
     }
 }
 //
 export const validateParams = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        try{
+        try {
             schema.parse(req.params);
             next();
-        }catch (error) {
-            if (error instanceof z.ZodError) {
-                return res.status(400).json({
-                    message: 'Invalid parameters',
-                    errors: error.issues
-                });
-            }
+        } catch (error) {
+            handleZodError(res, error, "Invalid params");
             next(error);
         }
     }
@@ -38,17 +30,26 @@ export const validateParams = (schema: z.ZodTypeAny) => {
 //
 export const validateQuery = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        try{
+        try {
             schema.parse(req.query);
             next();
-        }catch (error) {
-            if (error instanceof z.ZodError) {
-                return res.status(400).json({
-                    message: 'Invalid query parameters',
-                    errors: error.issues
-                });
-            }
+        } catch (error) {
+            handleZodError(res, error, "Invalid query params");
             next(error);
         }
+    }
+}
+
+// Every validations repeat same error code, to clean that, create a function to errors
+
+function handleZodError(res: Response, error: unknown, message: string) {
+    if (error instanceof z.ZodError) {
+        return res.status(400).json({
+            message,
+            errors: error.issues.map((i) => ({
+                path: i.path.join("."),
+                message: i.message,
+            })),
+        });
     }
 }

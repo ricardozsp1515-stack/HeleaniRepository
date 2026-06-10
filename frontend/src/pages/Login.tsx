@@ -1,5 +1,6 @@
 import Header from "../components/Header";
 import LoginForm from "../components/LoginForm";
+import MobileFrame from "../components/MobileFrame";
 
 export default function Login() {
     return (
@@ -9,6 +10,7 @@ export default function Login() {
         >
             <Header />
             <LoginForm />
+            <MobileFrame />
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import Header from "../components/Header";
+import MobileFrame from "../components/MobileFrame";
 import RegisterForm from "../components/RegisterForm";
 
 export default function Register() {
@@ -9,6 +10,7 @@ export default function Register() {
     >
       <Header />
       <RegisterForm />
+      <MobileFrame />
     </div>
   );
 }

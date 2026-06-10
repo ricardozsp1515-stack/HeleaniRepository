@@ -15,7 +15,7 @@ export default function Hero() {
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-white">
         <img src={logoWhite} alt="Logo" className="w-24" />
 
-        <h2 className="text-5xl font-light mt-4">Healani</h2>
+        <h2 className="text-5xl font-semibold mt-4">Healani</h2>
 
         <p className="text-lg">Animal Health</p>
       </div>

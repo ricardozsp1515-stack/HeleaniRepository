@@ -1,6 +1,7 @@
 import Header from "../components/Header";
 import Hero from "../components/Hero";
 import InfoSection from "../components/InfoSection";
+import MobileFrame from "../components/MobileFrame";
 
 export default function LandingPage() {
   return (
@@ -11,6 +12,7 @@ export default function LandingPage() {
       <Header />
       <Hero />
       <InfoSection />
+      <MobileFrame />
     </div>
   );
 }

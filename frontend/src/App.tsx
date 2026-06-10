@@ -1,23 +1,21 @@
-//import { useState } from 'react'
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
-//import './App.css'
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import Daisy_test from "./components/Daisy_test"
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";
+import Register from "./pages/Register";
+import DaisyTest from "./pages/Daisy_test";
+import Login from "./pages/Login";
 
 function App() {
-
   return (
-    <>
-
-      <Router>
-        <Routes>
-          <Route path="/test" element={<Daisy_test></Daisy_test>}></Route>
-        </Routes>
-      </Router>
-
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/test" element={<DaisyTest />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

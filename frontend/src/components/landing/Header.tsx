@@ -1,4 +1,4 @@
-import logoWhite from "../assets/healani-logo-white.svg";
+import logoWhite from "../../assets/healani-logo-white.svg";
 
 export default function Header() {
   return (

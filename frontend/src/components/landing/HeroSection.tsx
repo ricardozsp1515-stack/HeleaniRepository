@@ -1,5 +1,5 @@
-import logoWhite from "../assets/healani-logo-white.svg";
-import mascotas from "../assets/mascotas-landing.svg";
+import logoWhite from "../../assets/healani-logo-white.svg";
+import mascotas from "../../assets/mascotas-landing.svg";
 
 export default function Hero() {
   return (

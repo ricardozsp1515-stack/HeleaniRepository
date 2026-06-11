@@ -1,6 +1,6 @@
-import Header from "../components/Header";
-import LoginForm from "../components/LoginForm";
-import MobileFrame from "../components/MobileFrame";
+import Header from "../components/landing/Header";
+import LoginForm from "../components/forms/LoginForm";
+import MobileFrame from "../components/layout/MobileFrame";
 
 export default function Login() {
     return (

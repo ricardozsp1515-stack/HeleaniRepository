@@ -1,5 +1,5 @@
-import Header from "../components/Header";
-import MobileFrame from "../components/MobileFrame";
+import Header from "../components/landing/Header";
+import MobileFrame from "../components/layout/MobileFrame";
 
 export default function TermsAndConditions() {
     return (

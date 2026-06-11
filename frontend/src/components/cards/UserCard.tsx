@@ -2,7 +2,7 @@ export default function UserCard() {
     return (
         <div className="bg-white rounded-3xl p-4 shadow-sm">
             <img
-                src="/profile.jpg"
+                src="https://images.unsplash.com/photo-1618863898463-fa03d1cbb066"
                 alt="Perfil"
                 className="w-full h-44 object-cover rounded-2xl"
             />

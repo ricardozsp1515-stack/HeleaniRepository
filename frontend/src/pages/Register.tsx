@@ -1,6 +1,6 @@
-import Header from "../components/Header";
-import MobileFrame from "../components/MobileFrame";
-import RegisterForm from "../components/RegisterForm";
+import Header from "../components/landing/Header";
+import MobileFrame from "../components/layout/MobileFrame";
+import RegisterForm from "../components/forms/RegisterForm";
 
 export default function Register() {
   return (

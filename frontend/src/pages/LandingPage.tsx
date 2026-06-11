@@ -1,7 +1,7 @@
-import Header from "../components/Header";
-import Hero from "../components/Hero";
-import InfoSection from "../components/InfoSection";
-import MobileFrame from "../components/MobileFrame";
+import Header from "../components/landing/Header";
+import Hero from "../components/landing/HeroSection";
+import InfoSection from "../components/landing/InfoSection";
+import MobileFrame from "../components/layout/MobileFrame";
 
 export default function LandingPage() {
   return (

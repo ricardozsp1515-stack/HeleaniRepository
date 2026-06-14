@@ -60,7 +60,7 @@ export default function AddItemCard({
       </div>
 
       {/* Mensaje */}
-      <div className="flex justify-center pb-4">
+      <div className="flex justify-center pb-2 pt-3">
         {showSuccess && (
           <div
             className="

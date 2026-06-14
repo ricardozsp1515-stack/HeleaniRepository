@@ -9,6 +9,8 @@ import Profile from "./pages/Profile";
 import AddPet from "./pages/AddPet";
 import PetProfile from "./pages/PetProfile";
 import ConfigureProfile from "./pages/ConfigProfile";
+import VetProfile from "./pages/VetProfile";
+import ClinicProfile from "./pages/ClinicProfile";
 
 function App() {
   return (
@@ -22,7 +24,9 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/pet-profile"element={<PetProfile />}/>
-        <Route path="/configure-profile" element={<ConfigureProfile />} />
+        <Route path="/configure-profile" element={<ConfigureProfile />}/>
+        <Route path="/vet-profile" element={<VetProfile />}/>
+        <Route path="/clinic-profile" element={<ClinicProfile />}/>
       </Routes>
     </BrowserRouter>
   );

@@ -19,7 +19,7 @@ export default function VetCard({
         </div>
 
         <div>
-          <h3 className="font-semibold">
+          <h3 className="font-semibold text-gray-700!">
             {name}
           </h3>
 

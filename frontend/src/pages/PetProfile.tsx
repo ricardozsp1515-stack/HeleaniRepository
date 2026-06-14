@@ -3,147 +3,108 @@ import PetHeaderCard from "../components/cards/PetHeaderCard";
 import OwnerCard from "../components/cards/OwnerCard";
 import VetCard from "../components/cards/VetCard";
 import PdfCard from "../components/cards/PdfCard";
+import { Link } from "react-router-dom";
+import AssociatedClinicCard from "../components/cards/AssoClinicCard";
 
 export default function PetProfile() {
-    return (
-        <AuthenticatedLayout>
+  return (
+    <AuthenticatedLayout>
+      <main className="p-8 pb-24">
+        <PetHeaderCard />
 
-            <main className="p-8 pb-24">
+        <div className="mt-8 border border-green-400 rounded-3xl p-4 flex flex-col gap-6 bg-white">
+          {/* Encabezado */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-3xl font-bold text-gray-700">Gato naranja</h2>
 
-                <PetHeaderCard />
+            <button className="btn btn-ghost text-green-800 text-2xl">✎</button>
+          </div>
 
-                <div className="mt-8 border border-green-400 rounded-3xl p-4 flex flex-col gap-6 bg-white">
+          {/* Datos básicos */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="border border-green-400 rounded-xl p-2 text-center">
+              <p className="text-sm text-gray-500">Sexo</p>
 
-                    {/* Encabezado */}
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-3xl font-bold text-gray-700">
-                            Gato naranja
-                        </h2>
+              <p className="font-semibold">Hembra</p>
+            </div>
 
-                        <button className="btn btn-ghost text-green-800 text-2xl">
-                            ✎
-                        </button>
-                    </div>
+            <div className="border border-green-400 rounded-xl p-2 text-center">
+              <p className="text-sm text-gray-500">Edad</p>
 
-                    {/* Datos básicos */}
-                    <div className="grid grid-cols-3 gap-2">
+              <p className="font-semibold">4 años</p>
+            </div>
 
-                        <div className="border border-green-400 rounded-xl p-2 text-center">
-                            <p className="text-sm text-gray-500">Sexo</p>
+            <div className="border border-green-400 rounded-xl p-2 text-center">
+              <p className="text-sm text-gray-500">Peso</p>
 
-                            <p className="font-semibold">
-                                Hembra
-                            </p>
-                        </div>
+              <p className="font-semibold">6,31 kg</p>
+            </div>
+          </div>
 
-                        <div className="border border-green-400 rounded-xl p-2 text-center">
-                            <p className="text-sm text-gray-500">Edad</p>
+          {/* Dueño */}
+          <section>
+            <h3 className="text-2xl font-bold text-gray-700 mb-3">Dueño(a)</h3>
 
-                            <p className="font-semibold">
-                                4 años
-                            </p>
-                        </div>
+            <Link to="/profile">
+              <OwnerCard />
+            </Link>
+          </section>
 
-                        <div className="border border-green-400 rounded-xl p-2 text-center">
-                            <p className="text-sm text-gray-500">Peso</p>
+          {/* Condiciones */}
+          <section>
+            <h3 className="text-2xl font-bold text-gray-700 mb-3">
+              Condiciones especiales
+            </h3>
 
-                            <p className="font-semibold">
-                                6,31 kg
-                            </p>
-                        </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <div className="badge badge-outline badge-lg p-4">Ejemplo_01</div>
 
-                    </div>
+              <div className="badge badge-outline badge-lg p-4">Ejemplo_02</div>
 
-                    {/* Dueño */}
-                    <section>
+              <div className="badge badge-outline badge-lg p-4">Ejemplo_03</div>
 
-                        <h3 className="text-2xl font-bold text-gray-700 mb-3">
-                            Dueño(a)
-                        </h3>
+              <div className="badge badge-outline badge-lg p-4">Ejemplo_04</div>
 
-                        <OwnerCard />
+              <div className="badge badge-outline badge-lg p-4">Ejemplo_05</div>
+            </div>
+          </section>
 
-                    </section>
+          {/* Exámenes */}
+          <section>
+            <h3 className="text-2xl font-bold text-gray-700 mb-3">
+              Exámenes médicos
+            </h3>
 
-                    {/* Condiciones */}
-                    <section>
+            <div className="flex flex-col gap-3">
+              <PdfCard fileName="Ejemplo_01.pdf" />
 
-                        <h3 className="text-2xl font-bold text-gray-700 mb-3">
-                            Condiciones especiales
-                        </h3>
+              <PdfCard fileName="Ejemplo_02.pdf" />
 
-                        <div className="flex flex-wrap justify-center gap-3">
+              <PdfCard fileName="Ejemplo_03.pdf" />
+            </div>
+          </section>
 
-                            <div className="badge badge-outline badge-lg p-4">
-                                Ejemplo_01
-                            </div>
+          {/* Veterinarios */}
+          <section>
+            <h3 className="text-2xl font-bold text-gray-700 mb-3">
+              Registro de veterinarios y clínicas
+            </h3>
 
-                            <div className="badge badge-outline badge-lg p-4">
-                                Ejemplo_02
-                            </div>
+            <div className="flex flex-col gap-3">
+              <Link to="/vet-profile">
+                <VetCard name="Roberto Inge" subtitle="example@gmail.com" />
+              </Link>
 
-                            <div className="badge badge-outline badge-lg p-4">
-                                Ejemplo_03
-                            </div>
-
-                            <div className="badge badge-outline badge-lg p-4">
-                                Ejemplo_04
-                            </div>
-
-                            <div className="badge badge-outline badge-lg p-4">
-                                Ejemplo_05
-                            </div>
-
-                        </div>
-
-                    </section>
-
-                    {/* Exámenes */}
-                    <section>
-
-                        <h3 className="text-2xl font-bold text-gray-700 mb-3">
-                            Exámenes médicos
-                        </h3>
-
-                        <div className="flex flex-col gap-3">
-
-                            <PdfCard fileName="Ejemplo_01.pdf" />
-
-                            <PdfCard fileName="Ejemplo_02.pdf" />
-
-                            <PdfCard fileName="Ejemplo_03.pdf" />
-
-                        </div>
-
-                    </section>
-
-                    {/* Veterinarios */}
-                    <section>
-
-                        <h3 className="text-2xl font-bold text-gray-700 mb-3">
-                            Registro de veterinarios y clínicas
-                        </h3>
-
-                        <div className="flex flex-col gap-3">
-
-                            <VetCard
-                                name="Roberto Inge"
-                                subtitle="example@gmail.com"
-                            />
-
-                            <VetCard
-                                name="Veterinaria Center"
-                                subtitle="(+506) 0000-0000"
-                            />
-
-                        </div>
-
-                    </section>
-
-                </div>
-
-            </main>
-
-        </AuthenticatedLayout>
-    );
+              <Link to="/clinic-profile">
+                <AssociatedClinicCard
+                  name="Veterinaria center"
+                  phone="(+506) 0000-0000"
+                />
+              </Link>
+            </div>
+          </section>
+        </div>
+      </main>
+    </AuthenticatedLayout>
+  );
 }

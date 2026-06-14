@@ -10,7 +10,7 @@ export default function OwnerCard() {
         </div>
 
         <div>
-          <h3 className="font-semibold">
+          <h3 className="font-semibold text-gray-700">
             Nombre Apellido Apellido
           </h3>
 

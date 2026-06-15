@@ -1,5 +1,6 @@
 import seed_user_roles from "./seed_user_roles";
 import seed_users from "./seed_users";
+import seed_pet_types from "./seed_pet_types";
 
 const seeders = async () => {
     // PROTECTION: Prevent seeding in production
@@ -19,10 +20,13 @@ const seeders = async () => {
         console.log("Starting seeders...");
 
         //first executte roles seed
-        await seed_user_roles();
+        //await seed_user_roles();
 
         //users seed
-        await seed_users();
+        //await seed_users();
+
+        //pet_types seed
+        await seed_pet_types();        
 
         console.log('Seeders completed successfully!');
     

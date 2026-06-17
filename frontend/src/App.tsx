@@ -13,6 +13,7 @@ import VetProfile from "./pages/VetProfile";
 import ClinicProfile from "./pages/ClinicProfile";
 import VetVerification from "./pages/VetVerification";
 import ClinicVerification from "./pages/ClinicVerification";
+import Information from "./pages/Information";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/clinic-profile" element={<ClinicProfile />}/>
         <Route path="/vet-verification" element={<VetVerification />}/>
         <Route path="/clinic-verification" element={<ClinicVerification />}/>
+        <Route path="/information" element={<Information />}/>
       </Routes>
     </BrowserRouter>
   );

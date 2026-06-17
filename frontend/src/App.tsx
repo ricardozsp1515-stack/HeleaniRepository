@@ -11,6 +11,8 @@ import PetProfile from "./pages/PetProfile";
 import ConfigureProfile from "./pages/ConfigProfile";
 import VetProfile from "./pages/VetProfile";
 import ClinicProfile from "./pages/ClinicProfile";
+import VetVerification from "./pages/VetVerification";
+import ClinicVerification from "./pages/ClinicVerification";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
         <Route path="/configure-profile" element={<ConfigureProfile />}/>
         <Route path="/vet-profile" element={<VetProfile />}/>
         <Route path="/clinic-profile" element={<ClinicProfile />}/>
+        <Route path="/vet-verification" element={<VetVerification />}/>
+        <Route path="/clinic-verification" element={<ClinicVerification />}/>
       </Routes>
     </BrowserRouter>
   );

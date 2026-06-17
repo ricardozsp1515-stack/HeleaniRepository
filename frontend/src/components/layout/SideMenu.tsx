@@ -50,7 +50,15 @@ export default function SideMenu() {
         <h2 className="text-4xl mb-4">Preferencias</h2>
 
         <li>
-          <a className="text-white! text-2xl">Notificaciones</a>
+          <div className="flex justify-between items-center w-full">
+            <span className="text-white text-2xl">Notificaciones</span>
+
+            <input
+              type="checkbox"
+              defaultChecked
+              className="toggle toggle-success toggle-sm"
+            />
+          </div>
         </li>
 
         <li>

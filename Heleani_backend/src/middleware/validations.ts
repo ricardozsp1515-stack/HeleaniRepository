@@ -1,22 +1,53 @@
+/**
+ * VALIDATION MIDDLEWARE
+ * This file contains middleware functions for validating incoming requests.
+ * We use Zod, a TypeScript-first schema validation library, to ensure
+ * that the data we receive from clients is in the correct format.
+ */
+
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { jwtVerify } from "jose";
-import env from "../../env"
+
 
 // Validations
+
+/**
+ * VALIDATE BODY MIDDLEWARE
+ * This function validates the request body against a Zod schema.
+ * If validation fails, it returns a 400 error with details about what went wrong.
+ * 
+ * @param schema - A Zod schema that defines the expected structure of the request body
+ * @returns Middleware function that validates req.body
+ */
+
 export const validateBody = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
+            // Attempt to parse and validate the request body against the schema
             const validatedData = schema.parse(req.body);
+
+            // If validation succeeds, replace req.body with the validated data
+            // This ensures that only valid data is passed to the next middleware
             req.body = validatedData;
+
+            // Continue to the next middleware or route handler
             next();
         } catch (error) {
+            // If validation fails, Zod throws a ZodError
             handleZodError(res, error, "Validation failed");
-            next(error);
+            next(error); // Contains details about what failed validation
         }
     }
 }
-//
+
+/**
+ * VALIDATE PARAMS MIDDLEWARE
+ * This function validates URL parameters (like /vehicles/:id) against a Zod schema.
+ * 
+ * @param schema - A Zod schema that defines the expected URL parameters
+ * @returns Middleware function that validates req.params
+ */
+
 export const validateParams = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -28,7 +59,14 @@ export const validateParams = (schema: z.ZodTypeAny) => {
         }
     }
 }
-//
+
+/**
+ * VALIDATE QUERY MIDDLEWARE
+ * This function validates query string parameters (like /vehicles?year=2024) against a Zod schema.
+ * 
+ * @param schema - A Zod schema that defines the expected query parameters
+ * @returns Middleware function that validates req.query
+ */
 export const validateQuery = (schema: z.ZodTypeAny) => {
     return (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -41,35 +79,6 @@ export const validateQuery = (schema: z.ZodTypeAny) => {
     }
 }
 
-//
-interface TokenPayload {
-    id: string;
-    email: string;
-}
-
-export const validate_token = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ message: "Token no proporcionado" });
-        }
-
-        const token = authHeader.split(" ")[1];
-        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-
-        const { payload } = await jwtVerify(token, secretKey);
-        const data = payload as unknown as TokenPayload;;
-
-        (req as Request & { user: TokenPayload }).user = {
-            id: data.id,
-            email: data.email,
-        };
-
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: "Token inválido o expirado" });
-    }
-};
 // Every validations repeat same error code, to clean that, create a function to errors
 
 function handleZodError(res: Response, error: unknown, message: string) {

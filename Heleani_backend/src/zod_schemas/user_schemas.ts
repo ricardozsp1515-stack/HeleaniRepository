@@ -27,10 +27,10 @@ export const get_user_by_name_schema = z.object({
 // update user
 // Use optional because may only one parameter will be updated, but use refine to force updated at least one
 export const update_user_schema = z.object({
-    name: z.string().nonempty().optional(),
-    email: z.email().nonempty().optional(),
-    password: z.string().nonempty().optional(),
-    role: z.string().nonempty().optional()
+    name: z.string().optional(),
+    email: z.email().optional(),
+    password: z.string().optional(),
+    role: z.string().optional()
 }).refine(
     (data) => Object.entries(data).some(([_, value]) => value !== undefined && value !== ""),
     { message: "Updated body can't be empty" }

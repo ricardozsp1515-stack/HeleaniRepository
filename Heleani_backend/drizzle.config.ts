@@ -16,3 +16,5 @@ export default defineConfig({
     //strict mode
     strict: true
 });
+
+// panini was here :3

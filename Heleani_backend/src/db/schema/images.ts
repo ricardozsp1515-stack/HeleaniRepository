@@ -9,6 +9,7 @@ import { pets } from "./pets";
 // define table
 export const images = pgTable('images', {
     id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull().unique(),
     url: text('url').notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull()

@@ -34,7 +34,7 @@ export const validateBody = (schema: z.ZodTypeAny) => {
             next();
         } catch (error) {
             // If validation fails, Zod throws a ZodError
-            handleZodError(res, error, "Validation failed");
+            handle_zod_error(res, error, "Validation failed");
             next(error); // Contains details about what failed validation
         }
     }
@@ -54,7 +54,7 @@ export const validateParams = (schema: z.ZodTypeAny) => {
             schema.parse(req.params);
             next();
         } catch (error) {
-            handleZodError(res, error, "Invalid params");
+            handle_zod_error(res, error, "Invalid params");
             next(error);
         }
     }
@@ -73,7 +73,7 @@ export const validateQuery = (schema: z.ZodTypeAny) => {
             schema.parse(req.query);
             next();
         } catch (error) {
-            handleZodError(res, error, "Invalid query params");
+            handle_zod_error(res, error, "Invalid query params");
             next(error);
         }
     }
@@ -81,7 +81,7 @@ export const validateQuery = (schema: z.ZodTypeAny) => {
 
 // Every validations repeat same error code, to clean that, create a function to errors
 
-function handleZodError(res: Response, error: unknown, message: string) {
+function handle_zod_error(res: Response, error: unknown, message: string) {
     if (error instanceof z.ZodError) {
         return res.status(400).json({
             message,

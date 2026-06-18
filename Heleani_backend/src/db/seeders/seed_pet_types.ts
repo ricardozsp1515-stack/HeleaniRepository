@@ -25,46 +25,47 @@ const seed_pet_types = async () => {
         // Insert pet_types (no ID needed)
         const insert_pet_types = await db.insert(pet_types).values([
 
+            //
             {name: "Dog"},
-
+            //
             {name: "Cat"},
-
+            //
             {name: "Freshwater fish"},
-
+            //
             {name: "Budgie or Canarie"},
-
+            //
             {name: "Hamster"},
-
+            //
             {name: "Rabbit"},
-
+            //
             {name: "Guinea pig"},
-
+            //
             {name: "Water turtle"},
-
+            //
             {name: "Ferret"},
-
+            //
             {name: "Gecko (small lizard)"},
-
+            //
             {name: "Parrot or Cockatoo"},
-
+            //
             {name: "Saltwater fish"},
-
+            //
             {name: "Snake"},
-
+            //
             {name: "Chinchilla"},
-
+            //
             {name: "Pet rat"},
-
+            //
             {name: "Gerbil"},
-
+            //
             {name: "Hedgehog"},
-
+            //
             {name: "Frogs (amphibians)"},
-
+            //
             {name: "Tarantulas or Scorpions"},
-
+            //
             {name: "Pot-bellied pigs"},
-
+            //
             {name: "Other"},
 
         ]).returning();

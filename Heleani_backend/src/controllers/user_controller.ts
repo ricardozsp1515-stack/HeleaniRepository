@@ -1,6 +1,7 @@
 //imports
 import e, { Request, Response } from "express";
 import {db} from '../db/connection';
+import { Authenticated_user } from "../middleware/auth_validation";
 
 //import tables
 import { users } from "../db/schema/users";
@@ -52,7 +53,7 @@ export const get_all = async (req:Request, res:Response) => {
         res.status(200).json(array_users);
 
     } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -61,18 +62,26 @@ export const get_all = async (req:Request, res:Response) => {
 
 /*
     
-    1. Extract id params
-    2. Read users Data
-    3. Search for some user with equal id
-    4. Return user
+    In user profile, the user data suppose to be visible, to show user information, extract user id from the token 
+    and search for this user data
 
 */
 
 export const get_by_id = async (req:Request, res:Response) => {
     try {
-        //1
-        const id = String(req.params.id);
-        //2
+
+        // Here use Authenticated_user interface to use property "user" 
+        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+
+        // firts validate that the user is authenticated
+        if (!auth_user ) {
+            return res.status(401).json({ message: "Usuario no autenticado" });
+        }
+
+        // take auth_user id to search for it data
+        const user_id = auth_user.id;
+        
+        // fetch data from the DB
         const results = await db
             .select({
                 id: users.id,
@@ -86,26 +95,23 @@ export const get_by_id = async (req:Request, res:Response) => {
             })
             .from(users)
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
-        //3
-            .where(eq(users.id, id))
-
+        // search data from specific user
+            .where(eq(users.id, user_id))
+        
+        // verify that this user has data
         if (!results.length) {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // convert results into an object
         const user = results[0];
-        //4
-        res.status(200).json({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            password: user.password,
-            role: { id: user.role_id, name: user.role_name },
-            created_at: user.created_at,
-            updated_at: user.updated_at,
-        });
+        
+        // return user
+        res.status(200).json(user);
+    
+    // handle errors
     } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -163,7 +169,7 @@ export const get_by_name = async (req:Request, res:Response) => {
         res.status(200).json(array_users);
 
     } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error(error);
         res.status(500).json({ message: 'Internal server error' });
     }
 }
@@ -172,41 +178,66 @@ export const get_by_name = async (req:Request, res:Response) => {
 
 /*
     
-    1. Extract id params
+    1. Extract id from the token
     2. Extract Request body (modified fields)
-    3. Look for user with same id
+    3. Search for a user with same id
     4. If exist update it data
-    5. Return updated user
+    5. Notify that the data has been updated
 
 */
 export const update_user = async (req:Request, res:Response) => {
 
     try {
-        //1
-        const id = String(req.params.id);
-        //2
+        // Here use Authenticated_user interface to use property "user" 
+        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+
+        // firts validate that the user is authenticated
+        if (!auth_user ) {
+            return res.status(401).json({ message: "Unauthenticated user" });
+        }
+
+        // take auth_user id to search for it
+        const user_id = auth_user.id;
+
         const { name, email, password, role_id } = req.body;
-        const hashed_password = await hash_password(password);
-        //3, 4
-        const updatedUser = await db.update(users)
-            .set({
-                name,
-                email,
-                password: hashed_password,
-                role_id,
-                updated_at: new Date(),
-            })
-            .where(eq(users.id, id))
+
+        /* 
+            verify that the password exist, if doesnt exist declare it as undefined
+            this is because, without this condition you would have to send the password and generally
+            you wouldn't want to change it
+        */
+        const hashed_password = password? await hash_password(password) : undefined;
+
+        const update_data: Record<string, any> = {
+            name,
+            email,
+            role_id,
+            updated_at: new Date()
+        };
+
+        // this condition serves to prevent the password from being entered as undefined
+
+        if(hash_password != undefined){
+            update_data.password= hashed_password;
+        }
+
+        // insert new data in correct user
+        const updated_user = await db.update(users)
+            .set(update_data)
+
+            // search for user id
+            .where(eq(users.id, user_id))
             .returning();
 
-        if (!updatedUser.length) {
+        // this condition serves to prevent internal errors if, for some reason, the user is authenticated but does not exist.
+        if (!updated_user.length) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        //5
+        // notify that the data has been updated
         res.status(200).json({message: 'User updated'});
     } catch (error) {
-        console.error("Error updating user:", error);
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -215,7 +246,7 @@ export const update_user = async (req:Request, res:Response) => {
 
 /*
     
-    1. Extract id params
+    1. Extract id from token
     2. Search for some user with equal id
     3. If exist, delete it
 
@@ -225,10 +256,18 @@ export const delete_user = async (req:Request, res:Response) => {
 
     try {
 
-        //1
-        const id = String(req.params.id);
+        // Here use Authenticated_user interface to use property "user" 
+        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+
+        // firts validate that the user is authenticated
+        if (!auth_user ) {
+            return res.status(401).json({ message: "Unauthenticated user" });
+        }
+
+        // take auth_user id to search for it
+        const user_id = auth_user.id;
         //2, 3
-        const deleted = await db.delete(users).where(eq(users.id, id)).returning();
+        const deleted = await db.delete(users).where(eq(users.id, user_id)).returning();
 
         if (!deleted.length) {
             return res.status(404).json({ message: "User not found" });
@@ -237,7 +276,7 @@ export const delete_user = async (req:Request, res:Response) => {
         res.status(200).json({ message: "User deleted successfully" });
         
     } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 }

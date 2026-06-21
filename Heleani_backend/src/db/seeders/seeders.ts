@@ -21,13 +21,13 @@ const seeders = async () => {
         console.log("Starting seeders...");
 
         //first executte roles seed
-        //await seed_user_roles();
+        await seed_user_roles();
 
         //users seed
         //await seed_users();
 
         //pet_types seed
-       // await seed_pet_types();   
+        await seed_pet_types();   
 
         //images_seed
         await seed_images();

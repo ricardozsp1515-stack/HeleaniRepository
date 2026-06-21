@@ -6,6 +6,7 @@ import { Authenticated_user } from "../middleware/auth_validation";
 //import tables
 import { users } from "../db/schema/users";
 import { user_roles } from "../db/schema/user_roles";
+import { images } from "../db/schema/images";
 import {hash_password} from '../utils/passwords';
 //db utils
 import {eq, ilike} from 'drizzle-orm';
@@ -26,15 +27,19 @@ export const get_all = async (req:Request, res:Response) => {
         const results = await db
             .select({
                 id: users.id,
-                role_id: users.role_id,
+                //role_id: users.role_id,
                 role_name: user_roles.name,
                 name: users.name,
                 email: users.email,
                 password: users.password,
+                image_url: images.url
+                /*
                 created_at: users.created_at,
                 updated_at: users.updated_at
+                */
             })
             .from(users)
+            .innerJoin(images, eq(users.image_id, images.id))
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
         //2
         const array_users = results.map(row => ({
@@ -42,12 +47,12 @@ export const get_all = async (req:Request, res:Response) => {
             name: row.name,
             email: row.email,
             password: row.password,
-            role: {
-                id: row.role_id,
-                name: row.role_name
-            },
+            role_name: row.role_name,
+            image_url: row.image_url
+            /*
             created_at: row.created_at,
             updated_at: row.updated_at
+            */
         }));
         //3
         res.status(200).json(array_users);
@@ -85,16 +90,20 @@ export const get_by_id = async (req:Request, res:Response) => {
         const results = await db
             .select({
                 id: users.id,
-                role_id: users.role_id,
+                //role_id: users.role_id,
                 role_name: user_roles.name,
                 name: users.name,
                 email: users.email,
-                password: users.password,
+                image_url: images.url
+                //password: users.password,
+                /*
                 created_at: users.created_at,
                 updated_at: users.updated_at
+                */
             })
             .from(users)
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
+            .innerJoin(images, eq(users.image_id, images.id))
         // search data from specific user
             .where(eq(users.id, user_id))
         
@@ -137,16 +146,20 @@ export const get_by_name = async (req:Request, res:Response) => {
         const results = await db
             .select({
                 id: users.id,
-                role_id: users.role_id,
+                //role_id: users.role_id,
                 role_name: user_roles.name,
                 name: users.name,
                 email: users.email,
-                password: users.password,
+                image_url: images.url
+                //password: users.password,
+                /*
                 created_at: users.created_at,
                 updated_at: users.updated_at
+                */
             })
             .from(users)
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
+            .innerJoin(images, eq(users.image_id, images.id))
             .where(ilike(users.name, `%${name}%`))
 
         if (!results.length) {
@@ -158,12 +171,8 @@ export const get_by_name = async (req:Request, res:Response) => {
             id: row.id,
             name: row.name,
             email: row.email,
-            role: {
-                id: row.role_id,
-                name: row.role_name
-            },
-            created_at: row.created_at,
-            updated_at: row.updated_at
+            role_name: row.role_name,
+            image_url: row.image_url
         }));
         //5
         res.status(200).json(array_users);

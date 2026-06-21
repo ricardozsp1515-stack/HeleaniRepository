@@ -11,6 +11,7 @@ import {generate_token} from '../utils/jwt';
 import {compare_paswords, hash_password} from '../utils/passwords';
 //
 import {eq} from 'drizzle-orm';
+import { images } from "../db/schema/images";
 
 //register function
 
@@ -18,9 +19,10 @@ import {eq} from 'drizzle-orm';
     1.extract user data
     2.hash the password
     3.Define regular rol for all users
-    4.Insert new user
-    5.generete token
-    6.return success response with token
+    4.Define user icon img
+    5.Insert new user
+    6.generete token
+    7.return success response with token
 */
 
 export const register = async (req:Request, res:Response) => {
@@ -33,30 +35,37 @@ export const register = async (req:Request, res:Response) => {
 
     const role_id = roles.find(r => r.name === "Regular")?.id ?? roles[0].id;
 
-    //4
+    //4.
+    const all_images = await db.select().from(images);
+
+    const image_id = await all_images.find(i => i.name === "User")?.id ?? all_images[0].id;
+
+    //5
         const [new_user] = await db.insert(users).values({
             name,
             email,
             password: hashed_password,
-            role_id
+            role_id,
+            image_id
             
         }).returning({
             id: users.id,
             name: users.name,
             email: users.email,
-            role_id: users.role_id
+            role_id: users.role_id,
+            image_id: users.image_id
         }
         );
 
 
-    //5
+    //6
     const token = await generate_token({
         id:new_user.id,
         email:new_user.email,
         name: new_user.name
     });
 
-    //6
+    //7
     return res.status(201).json({message: 'User registered', token});
 }
 

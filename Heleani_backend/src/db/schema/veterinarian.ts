@@ -12,8 +12,10 @@ import { comments } from "./comments";
 // define table
 export const veterinarian = pgTable ('veterinarian', {
     id: uuid('id').primaryKey().defaultRandom(),
-    user_id: uuid ('user_id').notNull().references(()=> users.id),
+    user_id: uuid ('user_id').notNull().unique().references(()=> users.id),
     veterinary_center_id: uuid ('veterinary_center_id').references(()=> veterinary_center.id),
+    license: text('license').notNull().unique(),
+    specialty: text('specialty').notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull()
 });

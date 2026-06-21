@@ -26,9 +26,9 @@ router.get("/get_user", validate_token, get_by_id);
 router.get("/name/:name", validate_token, validateParams(get_user_by_name_schema), get_by_name);
 
 // put users
-router.put("/update_user", validate_token, validateBody(update_user_schema), update_user);
+router.put("/", validate_token, validateBody(update_user_schema), update_user);
 
 // Delete user
-router.delete("/delete_user", validate_token, delete_user);
+router.delete("/", validate_token, delete_user);
 
 export default router;

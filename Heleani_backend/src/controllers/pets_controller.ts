@@ -4,6 +4,7 @@ import { db } from '../db/connection';
 import { pets } from "../db/schema/pets";
 import { eq, and, ilike } from 'drizzle-orm';
 import { pet_types } from "../db/schema/pet_types";
+import { images } from "../db/schema/images";
 import type { Authenticated_user } from "../middleware/auth_validation";
 
 
@@ -21,30 +22,34 @@ export const get_user_pets = async (req: Request, res: Response) => {
         const auth_user = (req as Request & { user?: Authenticated_user }).user;
 
         // firts validate that user exist
-        if (!auth_user ) {
+        if (!auth_user) {
             return res.status(401).json({ message: "Unauthenticated user" });
         }
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
-        
+
         // load pets data
         const user_pets = await db
             .select({
                 id: pets.id,
                 user_id: pets.user_id,
-                pet_type_id: pets.pet_type_id,
+                //pet_type_id: pets.pet_type_id,
                 pet_type_name: pet_types.name,
                 name: pets.name,
                 breed: pets.breed,
                 age: pets.age,
+                image_url: images.url
+                /*
                 created_at: pets.created_at,
                 updated_at: pets.updated_at
+                */
             })
             .from(pets)
             .innerJoin(pet_types, eq(pets.pet_type_id, pet_types.id))
+            .innerJoin(images, eq(pets.image_id, images.id))
             .where(eq(pets.user_id, user_id))
-        
+
         // If you request for more than one user, the respone will duplicate, for avoid that this const specify only one object for one pet
         const unique_pets = user_pets.filter(
             (row, index, self) => index === self.findIndex(r => r.id === row.id)
@@ -56,17 +61,15 @@ export const get_user_pets = async (req: Request, res: Response) => {
             name: row.name,
             breed: row.breed,
             age: row.age,
-            type: {
-                id: row.pet_type_id,
-                name: row.pet_type_name,
-            },
+            pet_type_name: row.pet_type_name,
+            image_url: row.image_url
         }));
 
         // return array
         res.status(200).json({
             message: "Get user pets!",
             pets: array_pets,
-        }); 
+        });
 
         // handle errors
     } catch (error) {
@@ -86,16 +89,25 @@ export const create_pet = async (req: Request, res: Response) => {
         if (!auth_user) {
             return res.status(401).json({ message: "Unauthenticated user" });
         }
-        
+
         // take new pet data
         const { name, breed, age, pet_type_id } = req.body;
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
 
+        //search for corresponding image
+        const [matched_image] = await db
+            .select({ image_id: images.id })
+            .from(pet_types)
+            .innerJoin(images, eq(images.name, pet_types.name))
+            .where(eq(pet_types.id, pet_type_id));
+
+        const image_id = matched_image?.image_id ?? null;
+
         // insert data in the DB
         const [new_pet] = await db
-        
+
             .insert(pets)
             .values({
                 name: name,
@@ -103,6 +115,7 @@ export const create_pet = async (req: Request, res: Response) => {
                 age: age,
                 user_id: user_id,
                 pet_type_id: pet_type_id,
+                image_id: image_id
             })
             .returning({
                 id: pets.id,
@@ -111,6 +124,7 @@ export const create_pet = async (req: Request, res: Response) => {
                 age: pets.age,
                 user_id: pets.user_id,
                 pet_type_id: pets.pet_type_id,
+                image_id: pets.image_id
             });
 
         // Notify that the pet was succesfully created
@@ -134,7 +148,7 @@ export const create_pet = async (req: Request, res: Response) => {
 
 export const get_pet_by_name = async (req: Request, res: Response) => {
 
-    try{
+    try {
         // Here use Authenticated_user interface to use user
         const auth_user = (req as Request & { user?: Authenticated_user }).user;
 
@@ -145,33 +159,37 @@ export const get_pet_by_name = async (req: Request, res: Response) => {
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
-        
+
         // take pet id
-        const pet_name = String (req.params.name);
+        const pet_name = String(req.params.name);
 
         /* 
             Verify that the pet exists and that the authentication user ID matches the pets user ID.
             This prevents that pets of other users appears in wrong profile
-        */ 
+        */
         const results = await db
             .select({
                 id: pets.id,
                 user_id: pets.user_id,
-                pet_type_id: pets.pet_type_id,
+                //pet_type_id: pets.pet_type_id,
                 pet_type_name: pet_types.name,
                 name: pets.name,
                 breed: pets.breed,
                 age: pets.age,
+                image_url: images.url
+                /*
                 created_at: pets.created_at,
                 updated_at: pets.updated_at
+                */
             })
             .from(pets)
             .innerJoin(pet_types, eq(pets.pet_type_id, pet_types.id))
+            .innerJoin(images, eq(pets.image_id, images.id))
             .where(and(ilike(pets.name, `%${pet_name}%`), eq(pets.user_id, user_id)));
 
         // If the user ID and the pet's user ID do not match, an error will be generated
-        if(!results.length){
-            return res.status(404).json({ message: "Not pet with this name"});
+        if (!results.length) {
+            return res.status(404).json({ message: "Not pet with this name" });
         }
 
         // convert db data in a array
@@ -180,17 +198,15 @@ export const get_pet_by_name = async (req: Request, res: Response) => {
             name: row.name,
             breed: row.breed,
             age: row.age,
-            type: {
-                id: row.pet_type_id,
-                name: row.pet_type_name,
-            }
+            pet_type_name: row.pet_type_name,
+            image_url: row.image_url
         }));
 
         // return array
         res.status(200).json(array_pets);
 
-    // handle errors
-    }catch (error){
+        // handle errors
+    } catch (error) {
         console.error(error)
         res.status(500).json({ message: "Internal server error" });
     }
@@ -207,7 +223,7 @@ export const get_pet_by_name = async (req: Request, res: Response) => {
 */
 export const update_pet = async (req: Request, res: Response) => {
 
-    try{
+    try {
         // Here use Authenticated_user interface to use user
         const auth_user = (req as Request & { user?: Authenticated_user }).user;
 
@@ -218,9 +234,9 @@ export const update_pet = async (req: Request, res: Response) => {
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
-        
+
         // take pet id
-        const pet_id = String (req.params.id);
+        const pet_id = String(req.params.id);
 
         // take updated pet data
         const { name, breed, age, pet_type_id } = req.body;
@@ -237,24 +253,24 @@ export const update_pet = async (req: Request, res: Response) => {
         /* 
             Verify that the pet exists and that the authentication user ID matches the pets user ID.
             This prevents a user who knows other users pet IDs from updating their data
-        */ 
+        */
         const [pet] = await db
             .select()
             .from(pets)
             .where(and(eq(pets.id, pet_id), eq(pets.user_id, user_id)));
-        
+
         // If the user ID and the pet's user ID do not match, an error will be generated
-        if(!pet){
-            return res.status(404).json({ message: "The pet is not registered"});
+        if (!pet) {
+            return res.status(404).json({ message: "The pet is not registered" });
         }
 
         // insert new data in corresponding pet
         const updated_pet = await db.update(pets)
-                    .set(update_data)
-        
-                    // search for pet id
-                    .where(eq(pets.id, pet_id))
-                    .returning();
+            .set(update_data)
+
+            // search for pet id
+            .where(eq(pets.id, pet_id))
+            .returning();
 
         // this condition serves to prevent internal errors if, for some reason, the pets id matches with users id but does not exist.
         if (!updated_pet.length) {
@@ -262,10 +278,10 @@ export const update_pet = async (req: Request, res: Response) => {
         }
 
         // notify that the data has been updated
-        res.status(200).json({message: 'Pet updated'});
-    
-    // handle errors
-    }catch (error){
+        res.status(200).json({ message: 'Pet updated' });
+
+        // handle errors
+    } catch (error) {
         console.error(error)
         res.status(500).json({ message: "Internal server error" });
     }
@@ -280,7 +296,7 @@ export const update_pet = async (req: Request, res: Response) => {
 */
 export const delete_pet = async (req: Request, res: Response) => {
 
-    try{
+    try {
         // Here use Authenticated_user interface to use user
         const auth_user = (req as Request & { user?: Authenticated_user }).user;
 
@@ -291,34 +307,34 @@ export const delete_pet = async (req: Request, res: Response) => {
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
-        
+
         // take pet id
-        const pet_id = String (req.params.id);
+        const pet_id = String(req.params.id);
 
         /* 
             Verify that the pet exists and that the authentication user ID matches the pets user ID.
             This prevents a user who knows other users pet IDs from deleting their data
-        */ 
+        */
         const [pet] = await db
             .select()
             .from(pets)
             .where(and(eq(pets.id, pet_id), eq(pets.user_id, user_id)));
-        
+
         // If the user ID and the pet's user ID do not match, an error will be generated
-        if(!pet){
-            return res.status(404).json({ message: "The pet is not registered"});
+        if (!pet) {
+            return res.status(404).json({ message: "The pet is not registered" });
         }
 
         const deleted = await db.delete(pets).where(eq(pets.id, pet_id)).returning();
-        
-                if (!deleted.length) {
-                    return res.status(404).json({ message: "Pet not found" });
-                }
-        
-                res.status(200).json({ message: "Pet deleted successfully" });
-    
-    // handle errors
-    }catch (error){
+
+        if (!deleted.length) {
+            return res.status(404).json({ message: "Pet not found" });
+        }
+
+        res.status(200).json({ message: "Pet deleted successfully" });
+
+        // handle errors
+    } catch (error) {
         console.error(error)
         res.status(500).json({ message: "Internal server error" });
     }

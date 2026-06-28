@@ -1,7 +1,7 @@
 //imports
 
 //import zod utils
-import { email, z } from 'zod';
+import { z } from 'zod';
 
 // Zod validdations
 

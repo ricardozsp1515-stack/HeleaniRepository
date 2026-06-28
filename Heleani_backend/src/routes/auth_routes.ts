@@ -2,7 +2,7 @@
 import { Router } from "express";
 
 //middleware validations
-import { validateBody, validateParams, validateQuery } from '../middleware/validations';
+import { validateBody } from '../middleware/validations';
 
 //controller
 import {register, login} from '../controllers/auth_controller';

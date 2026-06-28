@@ -6,11 +6,13 @@ import {createInsertSchema, createSelectSchema} from "drizzle-zod";
 // table imports
 import { images } from "./images";
 import { veterinarian } from "./veterinarian";
+import { users } from "./users";
 import { comments } from "./comments";
 
 // define table
 export const veterinary_center = pgTable('veterinary_center', {
     id: uuid('id').primaryKey().defaultRandom(),
+    user_id: uuid('user_id').notNull().references(() => users.id, { onDelete: "cascade" }),
     image_id: uuid('image_id').references(() => images.id),
     name: text('name').notNull(),
     address: text('address').notNull(),
@@ -23,6 +25,12 @@ export const veterinary_center = pgTable('veterinary_center', {
 // define relations
 
 export const veterinary_center_relations = relations (veterinary_center, ({many, one}) =>({
+
+    user: one(users, {
+            fields: [veterinary_center.user_id],
+            references: [users.id]
+        }),
+
     image: one(images, {
         fields: [veterinary_center.image_id],
         references: [images.id]

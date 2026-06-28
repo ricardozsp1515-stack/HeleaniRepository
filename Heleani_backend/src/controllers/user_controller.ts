@@ -1,7 +1,7 @@
 //imports
 import e, { Request, Response } from "express";
 import {db} from '../db/connection';
-import { Authenticated_user } from "../middleware/auth_validation";
+import { get_auth_user } from "../middleware/auth_validation";
 
 //import tables
 import { users } from "../db/schema/users";
@@ -15,15 +15,14 @@ import {eq, ilike} from 'drizzle-orm';
 
 /*
     
-    1. Read users Data
-    2. Convert it into array
-    3. Respose with the array
+    Administrators only!
+    retrieve all users, query the database for information on all users and print
 
 */
 
 export const get_all = async (req:Request, res:Response) => {
     try {
-        //1
+        // get information
         const results = await db
             .select({
                 id: users.id,
@@ -38,10 +37,18 @@ export const get_all = async (req:Request, res:Response) => {
                 updated_at: users.updated_at
                 */
             })
+
+            // Join tables
             .from(users)
             .innerJoin(images, eq(users.image_id, images.id))
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
-        //2
+        
+        // In the event that there are no registered users
+            if (!results.length) {
+            return res.status(404).json({ message: "Not users registered" });
+        }
+
+        // transform the data into an array
         const array_users = results.map(row => ({
             id: row.id,
             name: row.name,
@@ -54,9 +61,11 @@ export const get_all = async (req:Request, res:Response) => {
             updated_at: row.updated_at
             */
         }));
-        //3
+        
+        // print array
         res.status(200).json(array_users);
 
+    // handle errors
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
@@ -70,21 +79,37 @@ export const get_all = async (req:Request, res:Response) => {
     In user profile, the user data suppose to be visible, to show user information, extract user id from the token 
     and search for this user data
 
+    Admin only!
+    If the user is an administrator, they can choose whether or not to enter an ID in the parameters to search for that
+    user; if they do not, their own information will be displayed.
+
 */
 
 export const get_by_id = async (req:Request, res:Response) => {
     try {
 
-        // Here use Authenticated_user interface to use property "user" 
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that the user is authenticated
-        if (!auth_user ) {
-            return res.status(401).json({ message: "Usuario no autenticado" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it data
-        const user_id = auth_user.id;
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an administrator.
+        const is_admin = user_data?.role_name === "admin";
+
+        /* 
+            If the user is an administrator and the `id` parameter exists,
+            the user displayed will be the one with an ID equal to the parameter's ID;
+            otherwise, the user displayed will be the one with the ID that matches the authenticated user's ID.
+        */
+        const user_id = is_admin && req.params.id
+            ? String(req.params.id)
+            : auth_user.id
         
         // fetch data from the DB
         const results = await db
@@ -125,7 +150,7 @@ export const get_by_id = async (req:Request, res:Response) => {
     }
 }
 
-// Get users by name
+// Get users by name Not used
 
 /*
     
@@ -137,6 +162,7 @@ export const get_by_id = async (req:Request, res:Response) => {
 
 */
 
+/*
 export const get_by_name = async (req:Request, res:Response) => {
     try {
         //1
@@ -155,7 +181,7 @@ export const get_by_name = async (req:Request, res:Response) => {
                 /*
                 created_at: users.created_at,
                 updated_at: users.updated_at
-                */
+                
             })
             .from(users)
             .leftJoin(user_roles, eq(users.role_id, user_roles.id))
@@ -182,33 +208,46 @@ export const get_by_name = async (req:Request, res:Response) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 }
+*/
+
 
 // update user
 
 /*
-    
-    1. Extract id from the token
-    2. Extract Request body (modified fields)
-    3. Search for a user with same id
-    4. If exist update it data
-    5. Notify that the data has been updated
+    To prevent users from updating other users' information, the ID is extracted directly from the token.
+
+    Administrators only!
+    The endpoint has the option to place an ID in the route, and the user will be updated with that ID; 
+    however, this ID is only taken into account if the user's role is an admin.
 
 */
 export const update_user = async (req:Request, res:Response) => {
 
     try {
-        // Here use Authenticated_user interface to use property "user" 
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that the user is authenticated
-        if (!auth_user ) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it
-        const user_id = auth_user.id;
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
 
-        const { name, email, password, role_id } = req.body;
+        // Verify that the user is an administrator.
+        const is_admin = user_data?.role_name === "admin";
+
+        /* 
+            If the user is an administrator and the id parameter exists,
+            then the user will be updated with an id equal to the parameter; 
+            otherwise, the user will be updated with the id that matches the authenticated user's id.
+        */
+        const user_id = is_admin && req.params.id
+            ? String(req.params.id)
+            : auth_user.id
+
+        const { name, email, password} = req.body;
 
         /* 
             verify that the password exist, if doesnt exist declare it as undefined
@@ -220,7 +259,6 @@ export const update_user = async (req:Request, res:Response) => {
         const update_data: Record<string, any> = {
             name,
             email,
-            role_id,
             updated_at: new Date()
         };
 
@@ -254,36 +292,53 @@ export const update_user = async (req:Request, res:Response) => {
 // Delete user
 
 /*
-    
-    1. Extract id from token
-    2. Search for some user with equal id
-    3. If exist, delete it
+    In the event that a user wants to delete their account, they can, however,
+    only delete themselves, because the ID is taken directly from the token.
 
+    Admin only!
+    The endpoint has the option to place an ID in the route, and the user will be deleted with that ID; 
+    however, this ID is only taken into account if the user's role is an admin.
 */
 
 export const delete_user = async (req:Request, res:Response) => {
 
     try {
 
-        // Here use Authenticated_user interface to use property "user" 
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+         // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that the user is authenticated
-        if (!auth_user ) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it
-        const user_id = auth_user.id;
-        //2, 3
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an administrator.
+        const is_admin = user_data?.role_name === "admin";
+
+        /* 
+            If the user is an administrator and the id parameter exists,
+            then the user will be deleted with an id equal to the parameter; 
+            otherwise, the user will be updated with the id that matches the authenticated user's id.
+        */
+        const user_id = is_admin && req.params.id
+            ? String(req.params.id)
+            : auth_user.id
+
+        // Find the user and delete it.
         const deleted = await db.delete(users).where(eq(users.id, user_id)).returning();
 
+        // Error handling, if the user cannot be found.
         if (!deleted.length) {
             return res.status(404).json({ message: "User not found" });
         }
 
+        // Notify that the user was successfully deleted.
         res.status(200).json({ message: "User deleted successfully" });
-        
+    
+    // Handle errors
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Internal server error" });

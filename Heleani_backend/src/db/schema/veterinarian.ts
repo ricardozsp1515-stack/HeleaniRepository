@@ -12,7 +12,7 @@ import { comments } from "./comments";
 // define table
 export const veterinarian = pgTable ('veterinarian', {
     id: uuid('id').primaryKey().defaultRandom(),
-    user_id: uuid ('user_id').notNull().unique().references(()=> users.id),
+    user_id: uuid ('user_id').notNull().unique().references(()=> users.id, { onDelete: "cascade" }),
     veterinary_center_id: uuid ('veterinary_center_id').references(()=> veterinary_center.id),
     license: text('license').notNull().unique(),
     specialty: text('specialty').notNull(),
@@ -27,7 +27,10 @@ export const veterinarian_relations = relations (veterinarian, ({one, many}) => 
         references: [users.id]
     }),
 
-    veterinary_centers: many(veterinary_center),
+    veterinary_center: one(veterinary_center, {
+        fields: [veterinarian.veterinary_center_id],
+        references: [veterinary_center.id]
+    }),
 
     appointments: many(appointment),
     

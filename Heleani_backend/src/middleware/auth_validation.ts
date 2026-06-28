@@ -57,3 +57,19 @@ export const validate_token = async (req: Request, res: Response, next: NextFunc
         return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
+
+// get auth user function
+
+/*
+    This function take token data and convert it into an object
+*/
+export const get_auth_user = async (req: Request) => {
+
+    const auth_user = (req as Request & { user?: Authenticated_user }).user;
+
+    if (!auth_user) {
+        throw new Error("UNAUTHENTICATED");
+    }
+
+    return auth_user;
+};

@@ -1,148 +1,230 @@
-# Express.js Backend — Student Starter Template
+# Heleani Animal Health 
 
-This is a beginner-friendly Express.js project template. It gives you a clean, organized starting point without worrying about project setup.
-
----
-
-## What is this project?
-
-This project is a **web server** built with [Node.js](https://nodejs.org/) and [Express.js](https://expressjs.com/).
-
-- **Node.js** — lets you run JavaScript outside the browser (i.e., on your computer or a server).
-- **Express.js** — a library that makes it easy to create a web server and handle HTTP requests (GET, POST, etc.) in Node.js.
+A veterinary care system where users can schedule appointments with verified veterinarians and keep a full history of their visits, including diagnoses.
 
 ---
 
-## Prerequisites
+## Tech Stack
 
-Before running this project, make sure you have installed:
-
-- [Node.js](https://nodejs.org/) (v18 or newer recommended) — includes `npm` automatically
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js |
+| Language | TypeScript |
+| Framework | Express.js |
+| ORM | Drizzle ORM |
+| Database | PostgreSQL (Neon) |
+| Authentication | JWT (JSON Web Tokens) |
+| Validation | Zod |
+| Password Hashing | bcrypt |
 
 ---
 
 ## Getting Started
 
-Follow these steps to run the project on your machine:
+### Prerequisites
+
+- Node.js v18 or higher
+- A [Neon](https://neon.tech) account with a PostgreSQL database
+
+### Installation
+
+1. Clone the repository:
 
 ```bash
-# 1. Install all dependencies listed in package.json
+git clone https://github.com/ricardozsp1515-stack/HeleaniRepository.git
+cd YOUR_REPO_NAME
+```
+
+2. Install dependencies:
+
+```bash
 npm install
+```
 
-# 2. Create your local environment file by copying the example
-#    Then open .env and fill in your own values
-cp .env.example .env
+3. Create a `.env` file in the root of the project based on the example below:
 
-# 3. Start the development server (auto-restarts on file changes)
+```env
+APP_STAGE=dev
+PORT=3000
+DATABASE_URL=postgresql://your_user:your_password@your_host/your_db?sslmode=require
+JWT_SECRET=your_jwt_secret
+```
+
+4. Push the database schema to Neon:
+
+```bash
+npx drizzle-kit push
+```
+
+5. Seed the database with initial data (roles, default images, admin user):
+
+```bash
+npx tsx src/db/seeders/seeders.ts
+```
+
+6. Start the development server:
+
+```bash
 npm run dev
-
-# Or, start it without auto-restart:
-npm start
 ```
 
-Once running, open your browser and go to: **http://localhost:3000**
+The server will be running at `http://localhost:3000`.
 
 ---
 
-## Folder Structure
+## Authentication
+
+This API uses **Bearer Token** authentication. After logging in, include the token in the `Authorization` header of every protected request:
 
 ```
-backend/
-│
-├── public/                 # Static files served directly to the browser
-│   └── favicon.ico         # The small icon shown in the browser tab
-│
-├── src/                    # All your application source code lives here
-│   │
-│   ├── routes/             # Defines the URL paths your API responds to
-│   │   └── userRoutes.js   # All routes related to "users" (e.g. /api/users)
-│   │
-│   └── app.js              # Sets up the Express app: middleware, static files, routes
-│
-├── .env                    # Your secret config values — DO NOT commit this to Git!
-├── .env.example            # A safe template showing which variables are needed
-├── .gitignore              # Tells Git which files/folders to ignore (e.g. node_modules)
-├── package.json            # Project metadata, dependencies, and npm scripts
-├── package-lock.json       # Auto-generated lockfile — ensures consistent installs
-└── server.js               # Entry point — starts the server and listens on a port
+Authorization: Bearer YOUR_TOKEN_HERE
 ```
 
 ---
 
-## How the Code Flows
+## Roles
 
-Understanding how a request travels through the app is key. Here's the journey of a request:
-
-```
-Browser / Client
-      │
-      │  HTTP Request (e.g. GET http://localhost:3000/)
-      ▼
-  server.js          ← starts the server, defines the port
-      │
-      ▼
-  src/app.js         ← applies middleware (e.g. JSON parser, static files)
-      │
-      ▼
-  src/routes/        ← matches the URL path to the right handler function
-      │
-      ▼
-  Handler function   ← runs your logic and sends a response back
-      │
-      ▼
-Browser / Client     ← receives the response
-```
-
----
-
-## Key Files Explained
-
-### `server.js`
-This is where the app **starts**. It imports the configured Express app from `src/app.js` and calls `app.listen()` to begin accepting requests on a port.
-
-> Think of it as the "ON switch" for your server.
-
-### `src/app.js`
-This is where the Express app is **configured**. Middleware (functions that process requests before they reach your routes) and route files are registered here. The configured app is exported so `server.js` can use it.
-
-> Think of it as the "setup" file.
-
-### `src/routes/userRoutes.js`
-This file groups all routes related to a specific resource (users). Instead of putting all routes in one giant file, we split them by resource to keep the code organized and easy to navigate.
-
-> Think of it as a menu of available actions for "users".
-
-### `public/`
-Any file placed here is served **directly** by the server. For example, placing `favicon.ico` here means the browser can fetch it at `http://localhost:3000/favicon.ico` automatically.
-
-### `.env` vs `.env.example`
-| File | Purpose | Committed to Git? |
-|---|---|---|
-| `.env` | Your actual secret values (passwords, API keys) | ❌ No — it's in `.gitignore` |
-| `.env.example` | A template showing which variables are needed | ✅ Yes — safe to share |
-
-Always copy `.env.example` → `.env` and fill in your own values when setting up the project.
-
----
-
-## npm Scripts
-
-These commands are defined in `package.json` under `"scripts"`:
-
-| Command | What it does |
+| Role | Description |
 |---|---|
-| `npm start` | Starts the server with `node` (no auto-restart) |
-| `npm run dev` | Starts the server with `nodemon` (auto-restarts on file save) |
-
-> Use `npm run dev` while you are developing. Use `npm start` in production.
+| `Regular` | Default role. Can manage their own pets and appointments. |
+| `Veterinarian` | Verified veterinarian. Can view appointments and add diagnoses. |
+| `admin` | Full access to all resources and user management. |
 
 ---
 
-## Common Errors & Fixes
+## API Endpoints
 
-| Error | Likely Cause | Fix |
-|---|---|---|
-| `Cannot find module 'express'` | Dependencies not installed | Run `npm install` |
-| `app.get is not a function` | `app` was not exported from `app.js` | Add `module.exports = app;` at the bottom of `src/app.js` |
-| `EADDRINUSE: address already in use` | Another process is using the port | Change `PORT` in `.env`, or stop the other process |
-| `favicon.ico 404 Not Found` | Static file middleware not set up | Add `app.use(express.static(...))` in `src/app.js` |
+### Auth
+
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user | No |
+| `POST` | `/api/auth/login` | Login and receive a JWT token | No |
+
+---
+
+### Users
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `GET` | `/api/users` | Get all users | Yes | admin |
+| `GET` | `/api/users/get_user` | Get authenticated user'data | Yes | any |
+| `GET` | `/api/users/:id` | Get a user by ID | Yes | admin |
+| `PUT` | `/api/users` | Update authenticated user's profile | Yes | Any |
+| `PUT` | `/api/users/:id` | Update user profile by ID | Yes | admin |
+| `DELETE` | `/api/users` | Delete own account | Yes | Any |
+| `DELETE` | `/api/users/:id` | Delete any user by ID | Yes | admin |
+
+---
+
+### Pets
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `GET` | `/api/pets` | Get authenticated user's pets | Yes | Any |
+| `GET` | `/api/pets/:id` | Get other user's pets | Yes | Admin / Veterinarian |
+| `GET` | `/api/pets/pet/:id` | Get a pet by ID | Yes | Any |
+| `GET` | `/api/pets/name/:name` | Get a pets by name | Yes | Any |
+| `POST` | `/api/pets` | Create a new pet | Yes | Any |
+| `PUT` | `/api/pets/:id` | Update a pet | Yes | Any |
+| `DELETE` | `/api/pets/:id` | Delete a pet | Yes | Any |
+
+> Admins and veterinarians can pass `?user=uuid` to query parameters to access another user's pet.
+
+---
+
+### Veterinarians
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `GET` | `/api/veterinarians` | Get all veterinarians | Yes | Any |
+| `GET` | `/api/veterinarians/vets_name/:name` | Get veterinarian by name | Yes | Any |
+| `GET` | `/api/veterinarians/vets_id/:id` | Get veterinarian by ID | Yes | Any |
+| `GET` | `/api/veterinarians/vets_from_center/:id` | Get all vets from a center | Yes | Any |
+| `POST` | `/api/veterinarians/requests` | Submit a request to become a vet | Yes | Any |
+| `GET` | `/api/veterinarians/requests` | Get all pending vet requests | Yes | Admin |
+| `PUT` | `/api/veterinarians/:id/approve` | Approve a vet request | Yes | Admin |
+| `PUT` | `/api/veterinarians/:id/reject` | Reject a vet request | Yes | Admin |
+| `GET` | `/api/veterinarians/processed` | Get processed requests (approved/rejected) | Yes | Any |
+
+---
+
+### Veterinary Centers
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `GET` | `/api/centers` | Get all veterinary centers | Yes | Any |
+| `GET` | `/api/centers/center_name/:name` | Get center by name | Yes | Any |
+| `GET` | `/api/centers/center_id/:id` | Get center by ID | Yes | Any |
+| `PUT` | `/api/centers/:id` | Update a center | Yes | Owner / Admin |
+| `DELETE` | `/api/centers/:id` | Delete a center | Yes | Owner / Admin |
+| `POST` | `/api/centers/requests` | Submit a request to create a center | Yes | Any |
+| `GET` | `/api/centers/requests` | Get all pending center requests | Yes | Admin |
+| `PUT` | `/api/centers/:id/approve` | Approve a center request | Yes | Admin |
+| `PUT` | `/api/centers/:id/reject` | Reject a center request | Yes | Admin |
+| `GET` | `/api/centers/processed` | Get processed center requests (approved/rejected) | Yes | Any |
+
+
+---
+
+### Appointments
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `POST` | `/api/appointments` | Schedule a new appointment | Yes | Any |
+| `GET` | `/api/appointments/user_pet/:id` | Get appointments for a specific pet | Yes | Any |
+| `GET` | `/api/appointments/vet` | Get authenticated vet's appointments | Yes | Veterinarian |
+| `PUT` | `/api/appointments/:id` | Update appointment and add diagnosis | Yes | Admin / Veterinarian |
+| `DELETE` | `/api/appointments/:id` | Cancel an appointment | Yes | Owner / Admin |
+
+---
+
+### Comments
+
+| Method | Endpoint | Description | Auth | Role |
+|---|---|---|---|---|
+| `POST` | `/api/comments` | Leave a comment on a vet or center | Yes | Any |
+| `GET` | `/api/comments/vet/:id` | Get all comments for a veterinarian | Yes | Any |
+| `GET` | `/api/comments/center/:id` | Get all comments for a center | Yes | Any |
+| `PUT` | `/api/comments/:id` | Update a comment | Yes | Any |
+| `DELETE` | `/api/comments/:id` | Delete a comment | Yes | Author / Admin |
+
+---
+
+## Project Structure
+
+```
+src/
+├── controllers/        # Route handlers and business logic
+├── db/
+│   ├── schema/         # Drizzle table definitions
+│   └── seeders/
+|   └──  seeders.ts     # Database seed script
+├── middleware/         # JWT validation, role authorization, body validation
+├── routes/             # Express routers
+└── server.ts           # App entry point
+```
+
+---
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `APP_STAGE` | Application environment (`dev` || `production` || `test`) |
+| `PORT` | Port the server listens on |
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `JWT_SECRET` | Secret key used to sign and verify JWT tokens |
+
+---
+
+## Authors
+
+- **Johan Ricardo Zúniga Sánchez** — [johan.zunigasanchez@ucr.ac.cr]
+- **Fiorella Rodríguez Salazar** — [fiorella.rodriguezsalazar@ucr.ac.cr]
+
+---
+
+## License
+
+This project was developed as a university assignment for **Universidad de Costa Rica**, **Desarrollo de aplicaciones interactivas II TM-5100**, **3rd year**.

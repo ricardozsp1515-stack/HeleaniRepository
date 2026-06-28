@@ -2,10 +2,12 @@
 import { Request, Response } from "express";
 import { db } from '../db/connection';
 import { pets } from "../db/schema/pets";
+import { users } from "../db/schema/users";
+import { user_roles } from "../db/schema/user_roles";
 import { eq, and, ilike } from 'drizzle-orm';
 import { pet_types } from "../db/schema/pet_types";
 import { images } from "../db/schema/images";
-import type { Authenticated_user } from "../middleware/auth_validation";
+import { get_auth_user } from "../middleware/auth_validation";
 
 
 // get user pets
@@ -13,21 +15,36 @@ import type { Authenticated_user } from "../middleware/auth_validation";
 /* 
     In user profile, all pets supposed to be visible, for that this function will take user data with the auth token and search for
     all pets of provided user
+
+    Admin or veterinarian only!
+    Users only have access to their own pets; however, administrators and veterinarians can access all of any user's pets.
 */
 
 export const get_user_pets = async (req: Request, res: Response) => {
     try {
 
-        // Here use Authenticated_user interface to use property "user" 
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that user exist
-        if (!auth_user) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it pets
-        const user_id = auth_user.id;
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an administrator or veterinarian.
+        const is_adorvet = user_data?.role_name === "admin" || "Veterinarian";
+
+        /* 
+            If the user is an administrator or veterinarian and the `id` parameter exists,
+            pets belonging to the user whose ID matches that parameter will be displayed;
+            otherwise, pets belonging to the user whose ID matches the authenticated user's ID will be displayed
+        */
+        const user_id = is_adorvet && req.params.id
+            ? String(req.params.id)
+            : auth_user.id
 
         // load pets data
         const user_pets = await db
@@ -49,6 +66,11 @@ export const get_user_pets = async (req: Request, res: Response) => {
             .innerJoin(pet_types, eq(pets.pet_type_id, pet_types.id))
             .innerJoin(images, eq(pets.image_id, images.id))
             .where(eq(pets.user_id, user_id))
+        
+        //In the event that a user has not yet registered pets
+        if (!user_pets.length) {
+            return res.status(404).json({ message: "No pets registered" });
+        }
 
         // If you request for more than one user, the respone will duplicate, for avoid that this const specify only one object for one pet
         const unique_pets = user_pets.filter(
@@ -82,13 +104,8 @@ export const get_user_pets = async (req: Request, res: Response) => {
 export const create_pet = async (req: Request, res: Response) => {
 
     try {
-        // Here use Authenticated_user interface to use user
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
-
-        // firts validate that user exist
-        if (!auth_user) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
         // take new pet data
         const { name, breed, age, pet_type_id } = req.body;
@@ -139,6 +156,86 @@ export const create_pet = async (req: Request, res: Response) => {
     }
 };
 
+// get pet by id
+
+/* 
+    This feature will allow users to access information about one of their pets.
+
+    Admin and Veterinarian only!
+    Regular users will only be able to access information about their own pets, but 
+    veterinarians and admins will be able to access any user's pets through query parameters.
+*/
+export const get_pet_by_id = async (req: Request, res: Response) => {
+
+    try {
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
+
+        //Validate the user's role 
+
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an administrator or veterinarian.
+        const is_adorvet = user_data?.role_name === "admin" || "Veterinarian";
+
+        /* 
+            If the user is an administrator or veterinarian and the `user` query parameter exists,
+            pets belonging to the user whose ID matches that parameter will be displayed;
+            otherwise, pets belonging to the user whose ID matches the authenticated user's ID will be displayed.
+        */
+        const user_id = is_adorvet && req.query.user
+            ? String(req.query.user)
+            : auth_user.id
+
+        // take pet id
+        const pet_id = String(req.params.id);
+
+        /* 
+            Verify that the pet exists and that the authentication user ID matches the pets user ID.
+            This prevents that pets of other users appears in wrong profile
+        */
+        const results = await db
+            .select({
+                id: pets.id,
+                user_id: pets.user_id,
+                //pet_type_id: pets.pet_type_id,
+                pet_type_name: pet_types.name,
+                name: pets.name,
+                breed: pets.breed,
+                age: pets.age,
+                image_url: images.url
+                /*
+                created_at: pets.created_at,
+                updated_at: pets.updated_at
+                */
+            })
+            .from(pets)
+            .innerJoin(pet_types, eq(pets.pet_type_id, pet_types.id))
+            .innerJoin(images, eq(pets.image_id, images.id))
+            .where(and(eq(pets.id, pet_id), eq(pets.user_id, user_id)));
+
+        // If the user ID and the pet's user ID do not match, an error will be generated
+        if (!results.length) {
+            return res.status(404).json({ message: "Pet in not registered" });
+        }
+
+        const pet = results[0];
+
+        // return array
+        res.status(200).json(pet);
+
+        // handle errors
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: "Internal server error" });
+    }
+
+}
+
 // get pet by name
 
 /* 
@@ -149,13 +246,8 @@ export const create_pet = async (req: Request, res: Response) => {
 export const get_pet_by_name = async (req: Request, res: Response) => {
 
     try {
-        // Here use Authenticated_user interface to use user
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
-
-        // firts validate that user exist
-        if (!auth_user) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
         // take auth_user id to search for it pets
         const user_id = auth_user.id;
@@ -220,20 +312,35 @@ export const get_pet_by_name = async (req: Request, res: Response) => {
     corresponding pets record, to do this, the users ID is extracted from the token to 
     search for their pets. Then the pets id is obtained from params, the request body is 
     retrieved to obtain the new data, and this data is inserted into the corresponding pet's record
+
+    Admin only!
+    Users can only update their own pets, but administrators can update any user's pets.
 */
 export const update_pet = async (req: Request, res: Response) => {
 
     try {
-        // Here use Authenticated_user interface to use user
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that user exist
-        if (!auth_user) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it pets
-        const user_id = auth_user.id;
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an admin.
+        const is_admin = user_data?.role_name === "admin";
+
+        /* 
+            If the user is an administrator and the `user` query parameter exists,
+            pets belonging to the user whose ID matches that parameter can be modified;
+            otherwise, only pets belonging to the user whose ID matches the authenticated user's ID can be modified.
+        */
+        const user_id = is_admin && req.query.user
+            ? String(req.query.user)
+            : auth_user.id
 
         // take pet id
         const pet_id = String(req.params.id);
@@ -287,26 +394,41 @@ export const update_pet = async (req: Request, res: Response) => {
     }
 }
 
-// update pet function
+// delete pet function
 
 /* 
     The user will for some reason may want to erase a pet from their profile, for that
     extract user id from the token, and pet id from params, search for pet with same id
     and remove it from db
+
+    Admin only!
+    Users can only delete pets that belong to them, but admins can delete any user's pets.
 */
 export const delete_pet = async (req: Request, res: Response) => {
 
     try {
-        // Here use Authenticated_user interface to use user
-        const auth_user = (req as Request & { user?: Authenticated_user }).user;
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
 
-        // firts validate that user exist
-        if (!auth_user) {
-            return res.status(401).json({ message: "Unauthenticated user" });
-        }
+        //Validate the user's role 
 
-        // take auth_user id to search for it pets
-        const user_id = auth_user.id;
+        const [user_data] = await db
+            .select({ role_name: user_roles.name })
+            .from(users)
+            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
+            .where(eq(users.id, auth_user.id));
+
+        // Verify that the user is an admin.
+        const is_admin = user_data?.role_name === "admin";
+
+        /* 
+            If the user is an administrator and the `user` query parameter exists,
+            pets belonging to the user whose ID matches that parameter can be deleted;
+            otherwise, only pets belonging to the user whose ID matches the authenticated user's ID can be deleted.
+        */
+        const user_id = is_admin && req.query.user
+            ? String(req.query.user)
+            : auth_user.id
 
         // take pet id
         const pet_id = String(req.params.id);

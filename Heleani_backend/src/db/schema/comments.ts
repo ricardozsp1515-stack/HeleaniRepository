@@ -11,7 +11,7 @@ import { veterinary_center } from "./veterinary_center";
 // define table
 export const comments = pgTable ('comments', {
     id: uuid('id').primaryKey().defaultRandom(),
-    user_id: uuid ('user_id').notNull().references(()=> users.id),
+    user_id: uuid ('user_id').notNull().references(()=> users.id, { onDelete: "cascade" }),
     veterinarian_id: uuid ('veterinarian_id').references(() => veterinarian.id),
     veterinary_center_id: uuid ('veterinary_center_id').references(()=> veterinary_center.id),
     stars: integer ('stars').notNull(),

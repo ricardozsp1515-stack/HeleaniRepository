@@ -12,7 +12,7 @@ import { appointment } from "./appointment";
 // define table
 export const pets = pgTable('pets', {
     id: uuid('id').primaryKey().defaultRandom(),
-    user_id: uuid ('user_id').notNull().references(()=> users.id),
+    user_id: uuid ('user_id').notNull().references(()=> users.id, { onDelete: "cascade" }),
     pet_type_id: uuid ('pet_type_id').notNull().references(()=> pet_types.id),
     image_id: uuid('image_id').references(() => images.id),
     name: text('name').notNull(),

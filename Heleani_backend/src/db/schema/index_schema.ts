@@ -7,4 +7,6 @@ export * from "./veterinarian";
 export * from "./veterinary_center";
 export * from "./images";
 export * from "./comments";
-export * from "./appointment"
+export * from "./appointment";
+export * from "./veterinarian_requests";
+export * from "./veterinary_center_requests";

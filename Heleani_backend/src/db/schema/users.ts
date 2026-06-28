@@ -9,9 +9,10 @@ import { images } from "./images";
 import { pets } from "./pets";
 import { comments } from "./comments";
 import { appointment } from "./appointment";
+import { veterinary_center } from "./veterinary_center";
 
 // define table
-export const users = pgTable('users', {
+export const users = pgTable('users',{
     id: uuid('id').primaryKey().defaultRandom(),
     role_id: uuid ('role_id').notNull().references(() => user_roles.id),
     image_id: uuid('image_id').references(() => images.id),
@@ -38,7 +39,9 @@ export const user_relations = relations (users, ({one, many}) => ({
 
     comments: many (comments),
     
-    appointments: many(appointment)
+    appointments: many(appointment),
+
+    veterinary_centers: many(veterinary_center)
 }));
 
 // Infer types

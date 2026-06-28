@@ -12,11 +12,12 @@ import { pets } from "./pets";
 // define table
 export const appointment = pgTable ('appointment', {
     id: uuid('id').primaryKey().defaultRandom(),
-    user_id: uuid ('user_id').notNull().references(()=> users.id),
+    user_id: uuid ('user_id').notNull().references(()=> users.id, { onDelete: "cascade" }),
     veterinarian_id: uuid ('veterinarian_id').notNull().references(() => veterinarian.id),
     pet_id: uuid ('pet_id').notNull().references(() => pets.id),
     date: timestamp('date').notNull(),
-    diagnosis: text('diagnosis'). notNull(),
+    diagnosis: text('diagnosis'),
+    status:text('status').notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull()  
 });

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RegisterInput from "./RegisterInput";
-import AddItemCard from "../cards/AddItemCard";
-import UploadArea from "../layout/UploadArea";
 import { createPet, getPetTypes } from "../../services/petService";
 
 interface PetType {
@@ -67,11 +65,6 @@ export default function AddPetForm() {
         Agregar mascota
       </h1>
 
-      <UploadArea
-        text="Subir imagen."
-        successMessage="¡Subida exitosamente!"
-      />
-
       <RegisterInput
         placeholder="Nombre..."
         value={name}
@@ -104,16 +97,11 @@ export default function AddPetForm() {
         onChange={(e) => setBreed(e.target.value)}
       />
 
-      <RegisterInput placeholder="Sexo..." />
-
       <RegisterInput
         placeholder="Edad..."
         value={age}
         onChange={(e) => setAge(e.target.value)}
       />
-
-      <RegisterInput placeholder="Peso..." />
-      <RegisterInput placeholder="Color..." />
 
       {
         error && (
@@ -122,31 +110,6 @@ export default function AddPetForm() {
           </p>
         )
       }
-
-
-      <h2 className="text-center text-3xl font-bold text-gray-700">
-        Exámenes médicos
-      </h2>
-
-      <UploadArea
-        text=""
-        successMessage="¡Subido exitosamente!"
-        height="h-24"
-      />
-
-      <div>
-        <AddItemCard
-          title="Condiciones especiales"
-          placeholder="Agregar..."
-        />
-      </div>
-
-      <div>
-        <AddItemCard
-          title="Registro de veterinarios y clínicas"
-          placeholder="Agregar..."
-        />
-      </div>
 
       <button
         type="submit"

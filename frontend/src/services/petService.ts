@@ -53,3 +53,27 @@ export function createPet(data:any){
  );
 
 }
+
+
+
+// Elimina una mascota y, en cascada en el backend, todas sus citas
+// asociadas. No requiere body, solo el id en la URL.
+export function deletePet(id: string){
+
+  return apiFetch(`/pets/${id}`, {
+    method: "DELETE",
+  });
+
+}
+
+
+
+// Actualiza los datos de una mascota existente (nombre, raza, edad, especie)
+export function updatePet(id: string, data: any){
+
+  return apiFetch(`/pets/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+}

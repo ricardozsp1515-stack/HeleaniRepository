@@ -14,7 +14,7 @@ export const appointment = pgTable ('appointment', {
     id: uuid('id').primaryKey().defaultRandom(),
     user_id: uuid ('user_id').notNull().references(()=> users.id, { onDelete: "cascade" }),
     veterinarian_id: uuid ('veterinarian_id').notNull().references(() => veterinarian.id),
-    pet_id: uuid ('pet_id').notNull().references(() => pets.id),
+    pet_id: uuid ('pet_id').notNull().references(() => pets.id, { onDelete: "cascade" }),
     date: timestamp('date').notNull(),
     diagnosis: text('diagnosis'),
     status:text('status').notNull(),
@@ -44,4 +44,3 @@ export const appointment_relations = relations (appointment, ({one}) => ({
 
 export const insert_appointment_schema = createInsertSchema(appointment);
 export const select_appointment_schema = createSelectSchema(appointment);
-

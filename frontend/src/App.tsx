@@ -26,7 +26,7 @@ function App() {
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/add-pet" element={<AddPet />} />
-        <Route path="/pet-profile"element={<PetProfile />}/>
+        <Route path="/pet-profile/:id"element={<PetProfile />}/>
         <Route path="/configure-profile" element={<ConfigureProfile />}/>
         <Route path="/vet-profile" element={<VetProfile />}/>
         <Route path="/clinic-profile" element={<ClinicProfile />}/>

@@ -1,7 +1,7 @@
 import RegisterInput from "./RegisterInput";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { register } from "../../services/authService";
+import { register, login } from "../../services/authService";
 
 
 export default function RegisterForm() {
@@ -33,6 +33,11 @@ export default function RegisterForm() {
         password
 
       });
+
+      // El backend solo devuelve {message, token} al registrar, sin los
+  // datos del usuario. Hacemos login automatico justo despues para
+  // obtener tambien el objeto "user" y guardarlo en localStorage.
+  await login(email, password);
 
 
       navigate("/profile");

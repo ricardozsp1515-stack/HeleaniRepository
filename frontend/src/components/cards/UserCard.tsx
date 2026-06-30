@@ -1,21 +1,44 @@
+import { useEffect, useState } from "react";
+import { getProfile } from "../../services/userServices";
+
+// Misma imagen que el backend asigna por defecto a todo usuario nuevo
+// (tabla "images", registro "User"). Se usa como respaldo mientras carga
+// el perfil o si por algun motivo el usuario no tiene imagen asignada.
+const DEFAULT_PROFILE_IMAGE =
+  "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_150.png";
+
+interface Profile {
+  name: string;
+  image_url: string;
+}
+
 export default function UserCard() {
-    return (
-        <div className="bg-white rounded-3xl p-4 shadow-sm">
-            <img
-                src="https://images.unsplash.com/photo-1618863898463-fa03d1cbb066"
-                alt="Perfil"
-                className="w-full h-44 object-cover rounded-2xl"
-            />
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [error, setError] = useState("");
 
-            <div className="mt-4">
-                <h2 className="text-3xl font-semibold text-gray-700">
-                    Nombre Apellido Apellido
-                </h2>
+  useEffect(() => {
+    getProfile()
+      .then((data) => setProfile(data))
+      .catch((err) => setError(err.message));
+  }, []);
 
-                <p className="text-gray-500 mt-2">
-                    Se unió el 17 de abril del 2026
-                </p>
-            </div>
-        </div>
-    );
+  return (
+    <div className="bg-white rounded-3xl p-4 shadow-sm">
+      <img
+        src={profile?.image_url || DEFAULT_PROFILE_IMAGE}
+        alt="Perfil"
+        className="w-full h-44 object-cover rounded-2xl"
+      />
+
+      <div className="mt-4">
+        <h2 className="text-3xl font-semibold text-gray-700">
+          {profile?.name ?? "Cargando..."}
+        </h2>
+
+        {error && (
+          <p className="text-red-600 mt-2">{error}</p>
+        )}
+      </div>
+    </div>
+  );
 }

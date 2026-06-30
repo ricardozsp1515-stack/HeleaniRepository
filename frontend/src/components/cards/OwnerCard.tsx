@@ -1,21 +1,31 @@
-export default function OwnerCard() {
+interface OwnerCardProps {
+  name: string;
+  email: string;
+  imageUrl: string;
+}
+
+export default function OwnerCard({
+  name,
+  email,
+  imageUrl,
+}: OwnerCardProps) {
   return (
     <div className="border border-green-400 rounded-xl p-3 flex justify-between items-center">
       <div className="flex gap-3 items-center">
 
         <div className="avatar">
           <div className="w-12 rounded-full">
-            <img src="https://images.unsplash.com/photo-1618863898463-fa03d1cbb066" />
+            <img src={imageUrl} alt={name} />
           </div>
         </div>
 
         <div>
           <h3 className="font-semibold text-gray-700">
-            Nombre Apellido Apellido
+            {name}
           </h3>
 
           <p className="text-sm text-gray-500">
-            example@gmail.com
+            {email}
           </p>
         </div>
 

@@ -3,6 +3,7 @@ import env from './env';
 import user_routes from './src/routes/user_routes';
 import auth_routes from './src/routes/auth_routes';
 import pet_routes from  './src/routes/pet_routes';
+import pet_types_routes from './src/routes/pet_types_routes';
 import veterinarian_routes from './src/routes/veterinarian_routes';
 import veterinary_center_routes from './src/routes/veterinary_center_routes';
 import comments_routes from './src/routes/comments_routes';
@@ -18,6 +19,9 @@ app.use('/api/auth', auth_routes);
 
 // pet routes
 app.use('/api/pets', pet_routes);
+
+// pet types routes
+app.use('/api/pet-types', pet_types_routes);
 
 // veterinarian routes
 app.use('/api/veterinarians', veterinarian_routes);

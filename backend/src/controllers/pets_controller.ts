@@ -5,6 +5,7 @@ import { pets } from "../db/schema/pets";
 import { users } from "../db/schema/users";
 import { user_roles } from "../db/schema/user_roles";
 import { eq, and, ilike } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { pet_types } from "../db/schema/pet_types";
 import { images } from "../db/schema/images";
 import { get_auth_user } from "../middleware/auth_validation";
@@ -198,6 +199,10 @@ export const get_pet_by_id = async (req: Request, res: Response) => {
             Verify that the pet exists and that the authentication user ID matches the pets user ID.
             This prevents that pets of other users appears in wrong profile
         */
+        // alias de la tabla images para traer la foto de perfil del dueño,
+        // sin chocar con el join que ya trae la foto de la mascota
+        const owner_images = alias(images, "owner_images");
+
         const results = await db
             .select({
                 id: pets.id,
@@ -207,15 +212,18 @@ export const get_pet_by_id = async (req: Request, res: Response) => {
                 name: pets.name,
                 breed: pets.breed,
                 age: pets.age,
-                image_url: images.url
-                /*
+                image_url: images.url,
                 created_at: pets.created_at,
-                updated_at: pets.updated_at
-                */
+                // datos del dueño, para mostrarlos en la seccion "Dueño(a)" del perfil de la mascota
+                owner_name: users.name,
+                owner_email: users.email,
+                owner_image_url: owner_images.url
             })
             .from(pets)
             .innerJoin(pet_types, eq(pets.pet_type_id, pet_types.id))
             .innerJoin(images, eq(pets.image_id, images.id))
+            .innerJoin(users, eq(pets.user_id, users.id))
+            .innerJoin(owner_images, eq(users.image_id, owner_images.id))
             .where(and(eq(pets.id, pet_id), eq(pets.user_id, user_id)));
 
         // If the user ID and the pet's user ID do not match, an error will be generated

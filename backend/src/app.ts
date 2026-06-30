@@ -5,6 +5,8 @@ import path from 'path';
 import morgan from 'morgan';
 import helmet from 'helmet';
 
+import authRoutes from './routes/auth_routes';
+
 const app: Application = express();
 
 app.use(cors());

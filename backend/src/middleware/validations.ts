@@ -35,7 +35,6 @@ export const validateBody = (schema: z.ZodTypeAny) => {
         } catch (error) {
             // If validation fails, Zod throws a ZodError
             handle_zod_error(res, error, "Validation failed");
-            next(error); // Contains details about what failed validation
         }
     }
 }
@@ -55,7 +54,6 @@ export const validateParams = (schema: z.ZodTypeAny) => {
             next();
         } catch (error) {
             handle_zod_error(res, error, "Invalid params");
-            next(error);
         }
     }
 }
@@ -74,7 +72,6 @@ export const validateQuery = (schema: z.ZodTypeAny) => {
             next();
         } catch (error) {
             handle_zod_error(res, error, "Invalid query params");
-            next(error);
         }
     }
 }

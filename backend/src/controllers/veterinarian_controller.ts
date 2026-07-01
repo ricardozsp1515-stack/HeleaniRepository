@@ -129,6 +129,7 @@ export const get_by_id = async (req: Request, res: Response) => {
                 veterinary_center_id: veterinarian.veterinary_center_id,
                 name: users.name,
                 image_url: images.url,
+                created_at: veterinarian.created_at,
             })
             .from(veterinarian)
             // join to users to extract user data
@@ -190,6 +191,41 @@ export const get_vet_from_center = async (req: Request, res: Response) => {
 
         // Return array
         res.status(200).json(array_vets);
+
+        // handle errors
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// get my own veterinarian profile function
+/* 
+    Used by the "switch to vet mode" button: takes the user id from the token
+    and looks up their own veterinarian record, so the frontend knows which
+    veterinarian.id to navigate to (it's not the same as the user id).
+*/
+export const get_my_profile = async (req: Request, res: Response) => {
+    try {
+        // call function to get user data from token
+        const auth_user = await get_auth_user(req);
+
+        const results = await db
+            .select({
+                id: veterinarian.id,
+                license: veterinarian.license,
+                specialty: veterinarian.specialty,
+                veterinary_center_id: veterinarian.veterinary_center_id,
+            })
+            .from(veterinarian)
+            .where(eq(veterinarian.user_id, auth_user.id));
+
+        // If the user is not a veterinarian, they don't have a record here
+        if (!results.length) {
+            return res.status(404).json({ message: "You are not a registered veterinarian" });
+        }
+
+        res.status(200).json(results[0]);
 
         // handle errors
     } catch (error) {
@@ -274,7 +310,7 @@ export const get_pending_requests = async (req: Request, res: Response) => {
             .where(eq(veterinarian_requests.status, "pending"));
 
             if(!results.length){
-                res.status(404).json({message: "No pending requests"})
+                return res.status(404).json({message: "No pending requests"})
             }
 
         // convert data into array    
@@ -484,4 +520,3 @@ export const get_precessed_requests = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-

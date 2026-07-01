@@ -1,11 +1,81 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AssociatedClinicCard from "../components/cards/AssoClinicCard";
+import { getVetById } from "../services/vetService";
+import { getCenterById } from "../services/centerService";
+
+interface Vet {
+  id: string;
+  name: string;
+  license: string;
+  specialty: string;
+  veterinary_center_id: string | null;
+  image_url: string;
+  created_at: string;
+}
+
+interface Center {
+  id: string;
+  name: string;
+  contact: string;
+  image_url: string;
+}
 
 export default function VetProfile() {
+  const { id } = useParams<{ id: string }>();
+
+  const [vet, setVet] = useState<Vet | null>(null);
+  const [center, setCenter] = useState<Center | null>(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+
+    getVetById(id)
+      .then((data) => setVet(data))
+      .catch((err) => setError(err.message));
+  }, [id]);
+
+  // Si el veterinario tiene una clinica asociada, traemos tambien sus datos
+  // para mostrar la tarjeta de "Clinicas asociadas"
+  useEffect(() => {
+    if (!vet?.veterinary_center_id) return;
+
+    getCenterById(vet.veterinary_center_id)
+      .then((data) => setCenter(data))
+      .catch(() => setCenter(null));
+  }, [vet]);
+
+  const formattedDate = vet?.created_at
+    ? new Date(vet.created_at).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
+  if (error) {
+    return (
+      <AuthLayout>
+        <main className="p-8">
+          <p className="text-center text-red-600">{error}</p>
+        </main>
+      </AuthLayout>
+    );
+  }
+
+  if (!vet) {
+    return (
+      <AuthLayout>
+        <main className="p-8">
+          <p className="text-center text-gray-600">Cargando...</p>
+        </main>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
@@ -13,21 +83,18 @@ export default function VetProfile() {
         {/* Header */}
         <div className="bg-white rounded-3xl p-4">
           <img
-            src="https://images.unsplash.com/photo-1644675272883-0c4d582528d8"
-            alt="Veterinario"
-            className="
-                            w-full
-                            h-64
-                            object-cover
-                            rounded-2xl
-                        "
+            src={vet.image_url}
+            alt={vet.name}
+            className="w-full h-64 object-cover rounded-2xl"
           />
 
           <div className="flex justify-between items-center mt-4">
             <div>
-              <h1 className="text-4xl font-bold text-gray-700">Roberto Inge</h1>
+              <h1 className="text-4xl font-bold text-gray-700">{vet.name}</h1>
 
-              <p className="text-gray-500">Se unió el 17 de abril del 2026</p>
+              {formattedDate && (
+                <p className="text-gray-500">Se unió el {formattedDate}</p>
+              )}
             </div>
 
             <span className="text-green-700 text-4xl">✔</span>
@@ -42,7 +109,7 @@ export default function VetProfile() {
             </h2>
 
             <p className="text-gray-600 mt-2">
-              Nivel de recomendación: Muy alto.
+              Especialidad: {vet.specialty}
             </p>
           </section>
 
@@ -51,21 +118,24 @@ export default function VetProfile() {
               Número registrado
             </h2>
 
-            <p className="text-gray-600 mt-2">(+506) 0000-0000</p>
+            <p className="text-gray-600 mt-2">{vet.license}</p>
           </section>
 
-          <section>
-            <h2 className="text-3xl font-bold text-gray-700 mb-4">
-              Clínicas asociadas
-            </h2>
+          {center && (
+            <section>
+              <h2 className="text-3xl font-bold text-gray-700 mb-4">
+                Clínicas asociadas
+              </h2>
 
-            <Link to="/clinic-profile">
-              <AssociatedClinicCard
-                name="Veterinaria center"
-                phone="(+506) 0000-0000"
-              />
-            </Link>
-          </section>
+              <Link to={`/clinic-profile/${center.id}`}>
+                <AssociatedClinicCard
+                  name={center.name}
+                  phone={center.contact}
+                  imageUrl={center.image_url}
+                />
+              </Link>
+            </section>
+          )}
 
           {/* Recomendar */}
           <section>
@@ -78,12 +148,12 @@ export default function VetProfile() {
                 type="button"
                 onClick={() => setMessage("Perfil recomendado")}
                 className="
-                                    btn
-                                    bg-green-600
-                                    hover:bg-green-700
-                                    border-none
-                                    text-white
-                                "
+                  btn
+                  bg-green-600
+                  hover:bg-green-700
+                  border-none
+                  text-white
+                "
               >
                 SI
               </button>
@@ -92,11 +162,11 @@ export default function VetProfile() {
                 type="button"
                 onClick={() => setMessage("Perfil no recomendado")}
                 className="
-                                    btn
-                                    btn-outline
-                                    border-green-600
-                                    text-green-700
-                                "
+                  btn
+                  btn-outline
+                  border-green-600
+                  text-green-700
+                "
               >
                 NO
               </button>
@@ -106,12 +176,12 @@ export default function VetProfile() {
               <div className="mt-4 text-center">
                 <span
                   className="
-                                    bg-green-700
-                                    text-white
-                                    px-4
-                                    py-2
-                                    rounded
-                                "
+                    bg-green-700
+                    text-white
+                    px-4
+                    py-2
+                    rounded
+                  "
                 >
                   {message}
                 </span>

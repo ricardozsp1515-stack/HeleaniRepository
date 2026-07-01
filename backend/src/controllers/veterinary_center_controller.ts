@@ -36,17 +36,17 @@ export const get_all = async (req: Request, res: Response) => {
             .innerJoin(users, eq(veterinary_center.user_id, users.id))
 
         if(!results.length){
-            res.status(404).json({message:"No centers registered"});
+            return res.status(404).json({message:"No centers registered"});
         }
         
         // convert data into array
         const array_vet_centers = results.map(row => ({
             id: row.id,
-            owner: row.name,
+            owner: row.owner,
             name: row.name,
             address: row.address,
             contact: row.contact,
-            description: row.address,
+            description: row.description,
             image_url: row.image_url
             /*
             created_at: row.created_at,
@@ -77,7 +77,7 @@ export const get_by_name = async (req: Request, res: Response) => {
                 name: veterinary_center.name,
                 address: veterinary_center.address,
                 contact: veterinary_center.contact,
-                description: veterinary_center.address,
+                description: veterinary_center.description,
                 image_url: images.url
                 /*
                 created_at: pets.created_at,
@@ -96,11 +96,11 @@ export const get_by_name = async (req: Request, res: Response) => {
         // convert db data in a array
         const array_centers = results.map(row => ({
             id: row.id,
-            owner: row.name,
+            owner: row.owner,
             name: row.name,
             address: row.address,
             contact: row.contact,
-            description: row.address,
+            description: row.description,
             image_url: row.image_url
         }));
 
@@ -125,11 +125,12 @@ export const get_by_id = async (req: Request, res: Response) => {
         const results = await db
             .select({
                 id: veterinary_center.id,
+                user_id: veterinary_center.user_id,
                 owner: users.name,
                 name: veterinary_center.name,
                 address: veterinary_center.address,
                 contact: veterinary_center.contact,
-                description: veterinary_center.address,
+                description: veterinary_center.description,
                 image_url: images.url
                 /*
                 created_at: pets.created_at,
@@ -155,6 +156,50 @@ export const get_by_id = async (req: Request, res: Response) => {
         // handle errors
     } catch (error) {
         console.error(error)
+        res.status(500).json({ message: "Internal server error" });
+    }
+
+}
+
+// get my own veterinary center function
+/* 
+    Once a center request is approved, the owner needs a way to find their
+    own clinic (they don't know its id yet). Same pattern as veterinarian's
+    /me: takes the user id from the token and looks up the center they own.
+*/
+export const get_my_center = async (req: Request, res: Response) => {
+
+    try {
+        const auth_user = await get_auth_user(req);
+
+        const results = await db
+            .select({
+                id: veterinary_center.id,
+                user_id: veterinary_center.user_id,
+                owner: users.name,
+                name: veterinary_center.name,
+                address: veterinary_center.address,
+                contact: veterinary_center.contact,
+                description: veterinary_center.description,
+                image_url: images.url
+            })
+            .from(veterinary_center)
+            .innerJoin(images, eq(veterinary_center.image_id, images.id))
+            .innerJoin(users, eq(veterinary_center.user_id, users.id))
+            .where(eq(veterinary_center.user_id, auth_user.id));
+
+        const center = results[0];
+
+        // If the user doesn't own a center yet (no approved request), there's
+        // nothing to return
+        if (!center) {
+            return res.status(404).json({ message: "You don't have a registered center" });
+        }
+
+        res.status(200).json(center);
+
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Internal server error" });
     }
 
@@ -186,13 +231,13 @@ export const update_center = async (req: Request, res: Response) => {
         // Verify that the user is an administrator.
         const is_admin = user_data?.role_name === "admin";
 
-        const user_id = is_admin && req.params.user
+        const user_id = is_admin && req.query.user
             ? String(req.query.user)
             : auth_user.id
 
         const center_id = String(req.params.id)
 
-        const { name, addres, contact, description } = req.body;
+        const { name, address, contact, description } = req.body;
 
         const [center] = await db
             .select()
@@ -206,7 +251,7 @@ export const update_center = async (req: Request, res: Response) => {
 
         const update_data: Record<string, any> = {
             name,
-            addres,
+            address,
             contact,
             description,
             updated_at: new Date()
@@ -420,7 +465,7 @@ export const approve_request = async (req: Request, res: Response) => {
                     name: request.name,
                     address: request.address,
                     contact: request.contact,
-                    description: request.address,
+                    description: request.description,
                     image_id: vet_center_image.id
                 })
                 .returning();
@@ -545,4 +590,3 @@ export const get_precessed_requests = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-

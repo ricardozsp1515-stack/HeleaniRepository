@@ -5,7 +5,7 @@ import { Router } from "express";
 import { validateBody, validateParams, validateQuery } from '../middleware/validations';
 
 //controller
-import {get_all, get_by_name, get_by_id, get_vet_from_center, create_request, get_pending_requests, approve_request, reject_request, get_precessed_requests} from '../controllers/veterinarian_controller';
+import {get_all, get_by_name, get_by_id, get_vet_from_center, get_my_profile, create_request, get_pending_requests, approve_request, reject_request, get_precessed_requests} from '../controllers/veterinarian_controller';
 
 // Zod validations
 import { create_vetrequest_schema, get_vetrequest_schema, process_vetrequest_schema } from "../zod_schemas/vetrequest_schema";
@@ -16,6 +16,9 @@ const router = Router();
 
 //  get all
 router.get('/', validate_token, get_all);
+
+// get my own veterinarian profile (used by the "switch to vet mode" button)
+router.get('/me', validate_token, get_my_profile);
 
 // get by name
 router.get('/vets_name/:name', validate_token, get_by_name);

@@ -1,6 +1,7 @@
 import db from "../connection";
 import { users } from "../schema/users";
 import { user_roles } from "../schema/user_roles";
+import { images } from "../schema/images";
 import {hash_password} from '../../utils/passwords';
 
 const seed_admin = async () => {
@@ -21,6 +22,12 @@ const seed_admin = async () => {
 
     const admin_role = roles.find(r => r.name === "admin")?.id ?? roles[0].id;
 
+    // Buscamos la imagen por nombre en vez de un UUID fijo, porque
+    // seed_images genera IDs aleatorios (defaultRandom) en cada corrida
+    const all_images = await db.select().from(images);
+
+    const default_image_id = all_images.find(i => i.name === "User")?.id ?? all_images[0].id;
+
     const password_1 = await hash_password("ricardoadmin007");
 
     const password_2= await hash_password("fiorellaadmin007");
@@ -37,14 +44,14 @@ const seed_admin = async () => {
                 email: "ricardo@heleani.com",
                 password: password_1,
                 role_id: admin_role,
-                image_id: "94d049ab-2599-4e61-8471-8f9c392cd5e7"
+                image_id: default_image_id
             },
             {
                 name: "Fiorella",
                 email: "fiorella@heleani.com",
                 password: password_2,
                 role_id: admin_role,
-                image_id: "94d049ab-2599-4e61-8471-8f9c392cd5e7"
+                image_id: default_image_id
             }
         ]).returning();
         

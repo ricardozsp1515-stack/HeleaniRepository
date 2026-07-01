@@ -36,7 +36,7 @@ export const get_user_pets = async (req: Request, res: Response) => {
             .where(eq(users.id, auth_user.id));
 
         // Verify that the user is an administrator or veterinarian.
-        const is_adorvet = user_data?.role_name === "admin" || "Veterinarian";
+        const is_adorvet = user_data?.role_name === "admin" || user_data?.role_name === "Veterinarian";
 
         /* 
             If the user is an administrator or veterinarian and the `id` parameter exists,
@@ -181,7 +181,7 @@ export const get_pet_by_id = async (req: Request, res: Response) => {
             .where(eq(users.id, auth_user.id));
 
         // Verify that the user is an administrator or veterinarian.
-        const is_adorvet = user_data?.role_name === "admin" || "Veterinarian";
+        const is_adorvet = user_data?.role_name === "admin" || user_data?.role_name === "Veterinarian";
 
         /* 
             If the user is an administrator or veterinarian and the `user` query parameter exists,

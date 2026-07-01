@@ -24,7 +24,8 @@ router.get("/", validate_token, authorize_role(["admin"]), get_all);
 // Get user by id
 router.get("/get_user", validate_token, get_by_id);
 // Get user by id. Admin only!
-router.get("/get_user/:id", authorize_role(["admin"]), validate_token, validateParams(get_user_schema), get_by_id);
+router.get("/get_user/:id", validate_token, authorize_role(["admin"]), validateParams(get_user_schema), get_by_id);
+
 
 /* Not used
 
@@ -41,6 +42,6 @@ router.put("/:id", validate_token, authorize_role(["admin"]), validateParams(get
 // Delete user
 router.delete("/", validate_token, delete_user);
 // Delete user. Admin only!
-router.delete("/:id", authorize_role(["admin"]), validate_token, validateParams(get_user_schema), delete_user);
+router.delete("/:id", validate_token, authorize_role(["admin"]), validateParams(get_user_schema), delete_user);
 
 export default router;

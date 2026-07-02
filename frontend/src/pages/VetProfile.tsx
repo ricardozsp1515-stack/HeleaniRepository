@@ -28,7 +28,6 @@ export default function VetProfile() {
 
   const [vet, setVet] = useState<Vet | null>(null);
   const [center, setCenter] = useState<Center | null>(null);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -136,58 +135,6 @@ export default function VetProfile() {
               </Link>
             </section>
           )}
-
-          {/* Recomendar */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-700 mb-4">
-              ¿Recomienda este perfil?
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setMessage("Perfil recomendado")}
-                className="
-                  btn
-                  bg-green-600
-                  hover:bg-green-700
-                  border-none
-                  text-white
-                "
-              >
-                SI
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMessage("Perfil no recomendado")}
-                className="
-                  btn
-                  btn-outline
-                  border-green-600
-                  text-green-700
-                "
-              >
-                NO
-              </button>
-            </div>
-
-            {message && (
-              <div className="mt-4 text-center">
-                <span
-                  className="
-                    bg-green-700
-                    text-white
-                    px-4
-                    py-2
-                    rounded
-                  "
-                >
-                  {message}
-                </span>
-              </div>
-            )}
-          </section>
         </div>
       </main>
     </AuthLayout>

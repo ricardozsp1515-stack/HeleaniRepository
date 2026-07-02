@@ -6,7 +6,47 @@ import { images } from "../db/schema/images";
 import { users } from "../db/schema/users";
 import { user_roles } from "../db/schema/user_roles";
 import { veterinary_center_requests } from "../db/schema/veterinary_center_requests";
+import { veterinarian } from "../db/schema/veterinarian";
+import { veterinarian_requests } from "../db/schema/veterinarian_requests";
+import { comments } from "../db/schema/comments";
 import { get_auth_user } from "../middleware/auth_validation";
+
+// helper de limpieza en cascada para clinicas
+/*
+    El schema no tiene onDelete: cascade en todas las FK que apuntan a
+    veterinary_center (veterinarian.veterinary_center_id, comments.veterinary_center_id,
+    veterinarian_requests.veterinary_center_id), asi que borrar la clinica
+    directamente rompe por violacion de llave foranea si tiene veterinarios
+    asignados, comentarios, o solicitudes que la referencian.
+
+    Esta funcion se encarga de:
+    1. Desvincular (no borrar) a los veterinarios que trabajan en esa clinica
+    2. Borrar los comentarios hechos sobre esa clinica
+    3. Limpiar la referencia en solicitudes de veterinario que la mencionaban
+    4. Borrar la clinica
+
+    Se exporta para poder reutilizarla desde delete_user, cuando un usuario
+    que es dueño de una o mas clinicas elimina su cuenta por completo.
+*/
+export const cascade_delete_center = async (tx: any, center_id: string) => {
+    // desvincula veterinarios de la clinica, sin borrar su perfil de veterinario
+    await tx
+        .update(veterinarian)
+        .set({ veterinary_center_id: null, updated_at: new Date() })
+        .where(eq(veterinarian.veterinary_center_id, center_id));
+
+    // borra comentarios hechos sobre esta clinica
+    await tx.delete(comments).where(eq(comments.veterinary_center_id, center_id));
+
+    // limpia solicitudes de veterinario que apuntaban a esta clinica como lugar de trabajo
+    await tx
+        .update(veterinarian_requests)
+        .set({ veterinary_center_id: null, updated_at: new Date() })
+        .where(eq(veterinarian_requests.veterinary_center_id, center_id));
+
+    // finalmente borra la clinica
+    await tx.delete(veterinary_center).where(eq(veterinary_center.id, center_id));
+};
 
 // get all centers function
 
@@ -308,11 +348,13 @@ export const delete_center = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "You can't delete this center, because you're not the owner." });
         }
 
-        const deleted = await db.delete(veterinary_center).where(eq(veterinary_center, center_id)).returning();
-
-        if (!deleted.length) {
-            return res.status(404).json({ message:"center not found" });
-        }
+        // Borra la clinica y limpia todo lo que la referencia (veterinarios
+        // asignados, comentarios, solicitudes) dentro de una transaccion,
+        // para que no queden registros huerfanos ni la operacion falle a
+        // medias por una violacion de llave foranea.
+        await db.transaction(async (tx) => {
+            await cascade_delete_center(tx, center_id);
+        });
 
         res.status(200).json({ message: "Center deleted successfully" });
 

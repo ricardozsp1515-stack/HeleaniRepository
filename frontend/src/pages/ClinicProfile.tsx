@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import VetCard from "../components/cards/VetCard";
-import { getCenterById, updateCenter } from "../services/centerService";
+import { getCenterById, updateCenter, deleteCenter } from "../services/centerService";
 import { getVetsFromCenter } from "../services/vetService";
 import { getCurrentUser } from "../services/authService";
 
@@ -26,10 +26,10 @@ interface Vet {
 
 export default function ClinicProfile() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [center, setCenter] = useState<Center | null>(null);
   const [vets, setVets] = useState<Vet[]>([]);
-  const [message, setMessage] = useState("");
 
   // Controla el modo edicion de la informacion basica
   const [isEditing, setIsEditing] = useState(false);
@@ -40,6 +40,12 @@ export default function ClinicProfile() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [loadError, setLoadError] = useState("");
+
+  // Controla el flujo de eliminar la clinica: primero se pide confirmacion,
+  // solo se elimina de verdad si el dueño confirma explicitamente
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const loadCenter = () => {
     if (!id) return;
@@ -83,6 +89,10 @@ export default function ClinicProfile() {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setSaveError("");
+    // si el dueño estaba a mitad de confirmar el borrado y cancela la
+    // edicion, tambien cerramos la confirmacion para no dejarla colgada
+    setShowDeleteConfirm(false);
+    setDeleteError("");
   };
 
   const handleSave = async () => {
@@ -105,6 +115,24 @@ export default function ClinicProfile() {
       setSaveError(err.message || "No se pudo guardar los cambios");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteClinic = async () => {
+    if (!id) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await deleteCenter(id);
+
+      // La clinica ya no existe: no tiene sentido dejar al usuario en esta
+      // pagina, lo mandamos a la lista de clinicas que administra
+      navigate("/manage-clinics");
+    } catch (err: any) {
+      setDeleteError(err.message || "No se pudo eliminar la clínica");
+      setDeleting(false);
     }
   };
 
@@ -304,6 +332,76 @@ export default function ClinicProfile() {
                   {saving ? "Guardando..." : "Guardar cambios"}
                 </button>
               </div>
+
+              {/* Eliminar clínica: solo el dueño la ve, y solo mientras
+              esta editando. El backend vuelve a validar que sea el dueño
+              antes de borrar nada. */}
+              {!showDeleteConfirm ? (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => {
+                    setShowDeleteConfirm(true);
+                    setDeleteError("");
+                  }}
+                  className="
+                    btn
+                    btn-outline
+                    border-red-600
+                    text-red-600
+                    hover:bg-red-600
+                    hover:text-white
+                    hover:border-red-600
+                    rounded-xl
+                    mt-2
+                  "
+                >
+                  Eliminar clínica
+                </button>
+              ) : (
+                <div className="border border-red-300 bg-red-50 rounded-xl p-4 mt-2 flex flex-col gap-3">
+                  <p className="text-red-700 text-center font-semibold">
+                    ¿Seguro que desea eliminar esta clínica? Esta acción no
+                    se puede deshacer: se eliminará por completo y ya no
+                    aparecerá registrada en ningún perfil.
+                  </p>
+
+                  {deleteError && (
+                    <p className="text-red-600 text-center">{deleteError}</p>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteError("");
+                      }}
+                      className="btn flex-1 rounded-xl border-gray-300"
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={deleting}
+                      onClick={handleDeleteClinic}
+                      className="
+                        btn
+                        flex-1
+                        bg-red-600
+                        hover:bg-red-700
+                        border-none
+                        text-white
+                        rounded-xl
+                      "
+                    >
+                      {deleting ? "Eliminando..." : "Sí, eliminar"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -326,58 +424,6 @@ export default function ClinicProfile() {
               </div>
             </section>
           )}
-
-          {/* Recomendación */}
-          <section>
-            <h2 className="text-3xl font-bold text-gray-700 mb-4">
-              ¿Recomienda este perfil?
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setMessage("Perfil recomendado")}
-                className="
-                  btn
-                  bg-green-600
-                  hover:bg-green-700
-                  border-none
-                  text-white
-                "
-              >
-                SI
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMessage("Perfil no recomendado")}
-                className="
-                  btn
-                  btn-outline
-                  border-green-600
-                  text-green-700
-                "
-              >
-                NO
-              </button>
-            </div>
-
-            {message && (
-              <div className="mt-4 text-center">
-                <span
-                  className="
-                    bg-green-700
-                    text-white
-                    px-4
-                    py-2
-                    rounded
-                  "
-                >
-                  {message}
-                </span>
-              </div>
-            )}
-          </section>
         </div>
       </main>
     </AuthLayout>

@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getProfile } from "../../services/userServices";
+import { getProfile, deleteAccount } from "../../services/userServices";
 import { getMyVetProfile } from "../../services/vetService";
 import { getMyCenters } from "../../services/centerService";
 import { logout } from "../../services/authService";
@@ -13,6 +13,11 @@ export default function SideMenu() {
     const [isVet, setIsVet] = useState(false);
     const [myVetId, setMyVetId] = useState<string | null>(null);
     const [myCentersCount, setMyCentersCount] = useState(0);
+
+    // Controla el modal de confirmación para eliminar el perfil por completo
+    const [showDeleteAccountConfirm, setShowDeleteAccountConfirm] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
+    const [deleteAccountError, setDeleteAccountError] = useState("");
 
     // Verificamos el rol para el panel de admin y el switch de veterinario.
     // Esto es solo UX: el backend igual protege todo lo relevante sin
@@ -58,6 +63,24 @@ export default function SideMenu() {
             navigate("/profile");
         } else if (myVetId) {
             navigate(`/vet-profile/${myVetId}`);
+        }
+    };
+
+    // Elimina la cuenta por completo (mascotas, citas, comentarios, perfil
+    // de veterinario y clinicas propias caen en cascada en el backend), y
+    // luego cierra la sesion como si el usuario hubiera hecho logout normal.
+    const handleDeleteAccount = async () => {
+        setDeletingAccount(true);
+        setDeleteAccountError("");
+
+        try {
+            await deleteAccount();
+
+            logout();
+            navigate("/");
+        } catch (err: any) {
+            setDeleteAccountError(err.message || "No se pudo eliminar el perfil");
+            setDeletingAccount(false);
         }
     };
 
@@ -188,7 +211,67 @@ export default function SideMenu() {
             Cerrar sesión
           </button>
         </li>
+
+        <div className="divider divider-neutral"></div>
+
+        {/* Zona de peligro */}
+        <h2 className="text-4xl mb-4">Zona de peligro</h2>
+
+        <li>
+          <button
+            type="button"
+            onClick={() => {
+              setShowDeleteAccountConfirm(true);
+              setDeleteAccountError("");
+            }}
+            className="text-2xl w-full text-left"
+          >
+            Eliminar perfil
+          </button>
+        </li>
       </ul>
+
+      {/* Modal de confirmación para eliminar el perfil */}
+      {showDeleteAccountConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-85 flex flex-col gap-4">
+            <h3 className="text-xl font-bold text-gray-800">
+              ¿Eliminar tu perfil por completo?
+            </h3>
+
+            <p className="text-gray-600">
+              Esta acción eliminará tu cuenta de forma permanente, junto con
+              todas tus mascotas, citas, comentarios, tu perfil de
+              veterinario (si lo tienes) y las clínicas de las que seas
+              dueño. No se puede deshacer.
+            </p>
+
+            {deleteAccountError && (
+              <p className="text-red-600 text-center">{deleteAccountError}</p>
+            )}
+
+            <div className="flex gap-3 mt-2">
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={() => setShowDeleteAccountConfirm(false)}
+                className="btn flex-1 rounded-xl border-gray-300"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={handleDeleteAccount}
+                className="btn flex-1 rounded-xl bg-red-600 hover:bg-red-700 border-none text-white"
+              >
+                {deletingAccount ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -7,9 +7,18 @@ import { get_auth_user } from "../middleware/auth_validation";
 import { users } from "../db/schema/users";
 import { user_roles } from "../db/schema/user_roles";
 import { images } from "../db/schema/images";
+import { veterinarian } from "../db/schema/veterinarian";
+import { veterinary_center } from "../db/schema/veterinary_center";
+import { appointment } from "../db/schema/appointment";
+import { comments } from "../db/schema/comments";
+import { veterinarian_requests } from "../db/schema/veterinarian_requests";
+import { veterinary_center_requests } from "../db/schema/veterinary_center_requests";
 import {hash_password} from '../utils/passwords';
 //db utils
 import {eq, ilike} from 'drizzle-orm';
+// funcion de limpieza en cascada de clinicas, reutilizada aqui para cuando
+// el usuario que se elimina es dueño de una o mas clinicas
+import { cascade_delete_center } from "./veterinary_center_controller";
 
 // Get all users function
 
@@ -327,13 +336,71 @@ export const delete_user = async (req:Request, res:Response) => {
             ? String(req.params.id)
             : auth_user.id
 
-        // Find the user and delete it.
-        const deleted = await db.delete(users).where(eq(users.id, user_id)).returning();
+        // Verify the user actually exists before doing any cleanup work
+        const [target_user] = await db.select().from(users).where(eq(users.id, user_id));
 
-        // Error handling, if the user cannot be found.
-        if (!deleted.length) {
+        if (!target_user) {
             return res.status(404).json({ message: "User not found" });
         }
+
+        /*
+            Eliminar un usuario debe eliminar TODO lo relacionado a el: mascotas,
+            citas, comentarios, su perfil de veterinario y las clinicas de las
+            que sea dueño. La mayoria de esto ya cae en cascada gracias a
+            onDelete: "cascade" en el schema (pets, comentarios propios, citas
+            propias, veterinarian, veterinary_center, veterinarian_requests,
+            veterinary_center_requests), PERO faltan cascadas en las FK que
+            apuntan HACIA veterinarian.id y veterinary_center.id
+            (appointment.veterinarian_id, comments.veterinarian_id,
+            veterinarian.veterinary_center_id, comments.veterinary_center_id,
+            veterinarian_requests.veterinary_center_id, y reviewed_by en ambas
+            tablas de requests). Sin limpiar eso primero, borrar al usuario
+            fallaria por violacion de llave foranea. Todo se hace en una
+            transaccion para que, si algo falla, no quede el borrado a medias.
+        */
+        await db.transaction(async (tx) => {
+
+            // 1. Si el usuario es veterinario, borra las citas y comentarios
+            // hechos sobre el (como veterinario, no como dueño de mascota)
+            const [vet] = await tx
+                .select()
+                .from(veterinarian)
+                .where(eq(veterinarian.user_id, user_id));
+
+            if (vet) {
+                await tx.delete(appointment).where(eq(appointment.veterinarian_id, vet.id));
+                await tx.delete(comments).where(eq(comments.veterinarian_id, vet.id));
+            }
+
+            // 2. Si el usuario es dueño de una o mas clinicas, elimina cada
+            // una reutilizando la misma limpieza en cascada de delete_center
+            const owned_centers = await tx
+                .select()
+                .from(veterinary_center)
+                .where(eq(veterinary_center.user_id, user_id));
+
+            for (const center of owned_centers) {
+                await cascade_delete_center(tx, center.id);
+            }
+
+            // 3. Si el usuario es admin y reviso solicitudes, desvincula esa
+            // referencia para no dejar una llave foranea apuntando a un
+            // usuario que ya no existe
+            await tx
+                .update(veterinarian_requests)
+                .set({ reviewed_by: null })
+                .where(eq(veterinarian_requests.reviewed_by, user_id));
+
+            await tx
+                .update(veterinary_center_requests)
+                .set({ reviewed_by: null })
+                .where(eq(veterinary_center_requests.reviewed_by, user_id));
+
+            // 4. Ahora si, borra al usuario. El resto (mascotas, citas y
+            // comentarios propios, su perfil de veterinario, sus solicitudes)
+            // cae en cascada automaticamente gracias a onDelete: "cascade"
+            await tx.delete(users).where(eq(users.id, user_id));
+        });
 
         // Notify that the user was successfully deleted.
         res.status(200).json({ message: "User deleted successfully" });

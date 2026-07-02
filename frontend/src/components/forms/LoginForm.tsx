@@ -105,30 +105,6 @@ export default function LoginForm() {
 
 
 
-        <label className="flex items-center gap-3 mt-2">
-
-          <input
-            type="checkbox"
-            className="checkbox checkbox-success checkbox-sm rounded-none"
-          />
-
-          <span className="text-sm text-gray-700">
-
-            Estoy de acuerdo con los{" "}
-
-            <Link
-              to="/terms"
-              className="text-green-800! font-semibold underline"
-            >
-              Términos y Condiciones
-            </Link>
-
-          </span>
-
-        </label>
-
-
-
         <button
           type="submit"
           className="

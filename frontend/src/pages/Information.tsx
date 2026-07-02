@@ -1,9 +1,12 @@
 import AuthLayout from "../components/layout/AuthLayout";
+import BackButton from "../components/buttons/BackButton";
 
 export default function Information() {
   return (
     <AuthLayout>
       <main className="p-8 pb-24">
+
+        <BackButton className="mb-4" />
 
         <div className="bg-white rounded-2xl shadow-md p-6 max-h-[70vh] overflow-y-auto">
 

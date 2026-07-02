@@ -21,6 +21,25 @@ export function getPublicProfile(id: string) {
 
 }
 
+// Actualiza los datos del usuario autenticado (nombre, correo y,
+// opcionalmente, contraseña). El backend identifica al usuario a partir
+// del token, por eso no se necesita pasar ningun id. Si password viene
+// undefined, JSON.stringify lo omite del body y el backend simplemente no
+// toca la contraseña actual.
+export function updateProfile(data: {
+  name: string;
+  email: string;
+  password?: string;
+}) {
+
+  return apiFetch("/users", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+}
+
+
 // Elimina por completo la cuenta del usuario autenticado: mascotas, citas,
 // comentarios, su perfil de veterinario (si lo tiene) y las clinicas de las
 // que sea dueño. El backend identifica al usuario a partir del token, por

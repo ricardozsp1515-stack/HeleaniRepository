@@ -1,5 +1,6 @@
 import Header from "../components/landing/Header";
 import MobileFrame from "../components/layout/MobileFrame";
+import BackButton from "../components/buttons/BackButton";
 
 export default function TermsAndConditions() {
     return (
@@ -10,6 +11,8 @@ export default function TermsAndConditions() {
             <Header />
 
             <main className="px-6 py-8">
+                <BackButton className="mb-4" />
+
                 <h1 className="text-3xl font-bold text-center text-gray-700 mb-6">
                     Términos y Condiciones
                 </h1>

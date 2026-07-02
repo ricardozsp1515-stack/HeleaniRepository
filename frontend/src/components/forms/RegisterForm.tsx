@@ -12,6 +12,7 @@ export default function RegisterForm() {
   const [name,setName] = useState("");
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [error,setError] = useState("");
 
@@ -23,6 +24,11 @@ export default function RegisterForm() {
 
     e.preventDefault();
 
+    // Aceptar los terminos y condiciones es obligatorio para registrarse
+    if (!acceptedTerms) {
+      setError("Debes aceptar los Términos y Condiciones para poder registrarte.");
+      return;
+    }
 
     try{
 
@@ -144,6 +150,13 @@ export default function RegisterForm() {
 
           <input
             type="checkbox"
+            checked={acceptedTerms}
+            onChange={(e) => {
+              setAcceptedTerms(e.target.checked);
+              // Si el usuario ya habia intentado enviar el formulario sin
+              // aceptar, limpiamos el mensaje de error apenas marque el check
+              if (e.target.checked) setError("");
+            }}
             className="checkbox checkbox-success checkbox-sm rounded-none"
           />
 

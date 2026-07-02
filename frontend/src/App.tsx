@@ -11,6 +11,7 @@ import PetProfile from "./pages/PetProfile";
 import ConfigureProfile from "./pages/ConfigProfile";
 import VetProfile from "./pages/VetProfile";
 import ClinicProfile from "./pages/ClinicProfile";
+import ManageClinics from "./pages/ManageClinics";
 import VetVerification from "./pages/VetVerification";
 import ClinicVerification from "./pages/ClinicVerification";
 import Information from "./pages/Information";
@@ -31,6 +32,7 @@ function App() {
         <Route path="/configure-profile" element={<ConfigureProfile />}/>
         <Route path="/vet-profile/:id" element={<VetProfile />}/>
         <Route path="/clinic-profile/:id" element={<ClinicProfile />}/>
+        <Route path="/manage-clinics" element={<ManageClinics />}/>
         <Route path="/vet-verification" element={<VetVerification />}/>
         <Route path="/clinic-verification" element={<ClinicVerification />}/>
         <Route path="/information" element={<Information />}/>

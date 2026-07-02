@@ -2,7 +2,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProfile } from "../../services/userServices";
 import { getMyVetProfile } from "../../services/vetService";
-import { getMyCenter } from "../../services/centerService";
+import { getMyCenters } from "../../services/centerService";
+import { logout } from "../../services/authService";
 
 export default function SideMenu() {
     const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function SideMenu() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isVet, setIsVet] = useState(false);
     const [myVetId, setMyVetId] = useState<string | null>(null);
-    const [myCenterId, setMyCenterId] = useState<string | null>(null);
+    const [myCentersCount, setMyCentersCount] = useState(0);
 
     // Verificamos el rol para el panel de admin y el switch de veterinario.
     // Esto es solo UX: el backend igual protege todo lo relevante sin
@@ -39,11 +40,11 @@ export default function SideMenu() {
     }, [isVet]);
 
     // Cualquier usuario (no solo veterinarios) puede llegar a ser dueño de
-    // una clinica una vez el admin aprueba su solicitud, asi que esto se
-    // busca sin importar el rol
+    // una o varias clinicas una vez el admin aprueba su(s) solicitud(es),
+    // asi que esto se busca sin importar el rol
     useEffect(() => {
-        getMyCenter().then((center) => {
-            setMyCenterId(center?.id ?? null);
+        getMyCenters().then((centers) => {
+            setMyCentersCount(Array.isArray(centers) ? centers.length : 0);
         });
     }, []);
 
@@ -105,12 +106,14 @@ export default function SideMenu() {
           </>
         )}
 
-        {/* Mi clínica - visible solo si el usuario ya tiene una clinica aprobada */}
-        {myCenterId && (
+        {/* Administrar clínicas - visible solo si el usuario tiene al menos
+        una clinica aprobada. Lleva al listado; desde ahi se entra al perfil
+        de cada una para verla/editarla. */}
+        {myCentersCount > 0 && (
           <>
             <li>
-              <Link to={`/clinic-profile/${myCenterId}`} className="text-white! text-2xl">
-                Administrar mi clínica
+              <Link to="/manage-clinics" className="text-white! text-2xl">
+                Administrar clínicas
               </Link>
             </li>
 
@@ -172,9 +175,18 @@ export default function SideMenu() {
         </li>
 
         <li>
-          <Link to="/" className="text-white! text-2xl">
+          <button
+            type="button"
+            onClick={() => {
+              // Cierra la sesion por completo: borra el token y los datos
+              // del usuario guardados en localStorage, no solo redirige.
+              logout();
+              navigate("/");
+            }}
+            className="text-white! text-2xl w-full text-left"
+          >
             Cerrar sesión
-          </Link>
+          </button>
         </li>
       </ul>
     </div>

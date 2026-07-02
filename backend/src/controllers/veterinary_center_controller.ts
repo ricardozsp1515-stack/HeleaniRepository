@@ -161,13 +161,14 @@ export const get_by_id = async (req: Request, res: Response) => {
 
 }
 
-// get my own veterinary center function
+// get my own veterinary centers function
 /* 
     Once a center request is approved, the owner needs a way to find their
-    own clinic (they don't know its id yet). Same pattern as veterinarian's
-    /me: takes the user id from the token and looks up the center they own.
+    own clinic(s) (they don't know the id(s) yet). Same pattern as
+    veterinarian's /me, but a user can own more than one center, so this
+    returns the full list instead of a single row.
 */
-export const get_my_center = async (req: Request, res: Response) => {
+export const get_my_centers = async (req: Request, res: Response) => {
 
     try {
         const auth_user = await get_auth_user(req);
@@ -188,15 +189,13 @@ export const get_my_center = async (req: Request, res: Response) => {
             .innerJoin(users, eq(veterinary_center.user_id, users.id))
             .where(eq(veterinary_center.user_id, auth_user.id));
 
-        const center = results[0];
-
-        // If the user doesn't own a center yet (no approved request), there's
+        // If the user doesn't own any center yet (no approved request), there's
         // nothing to return
-        if (!center) {
+        if (!results.length) {
             return res.status(404).json({ message: "You don't have a registered center" });
         }
 
-        res.status(200).json(center);
+        res.status(200).json(results);
 
     } catch (error) {
         console.error(error);

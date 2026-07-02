@@ -25,10 +25,9 @@ export function getCenterById(id: string) {
 }
 
 
-// Trae la clínica que le pertenece al usuario logueado, si tiene una
-// aprobada. Se usa para que, tras la aprobación de su solicitud, pueda
-// encontrar y administrar su propio perfil de clínica.
-export async function getMyCenter() {
+// Trae todas las clínicas que le pertenecen al usuario logueado (puede
+// tener una, varias, o ninguna si aun no le han aprobado una solicitud).
+export async function getMyCenters() {
 
   try {
 
@@ -36,8 +35,8 @@ export async function getMyCenter() {
 
   } catch (error) {
 
-    // 404 si el usuario no tiene una clínica registrada
-    return null;
+    // 404 si el usuario no tiene clínicas registradas
+    return [];
 
   }
 

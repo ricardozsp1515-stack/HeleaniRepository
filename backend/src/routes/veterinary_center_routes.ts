@@ -5,7 +5,7 @@ import { Router } from "express";
 import { validateBody, validateParams, validateQuery } from '../middleware/validations';
 
 //controller
-import {get_all, get_by_name, get_by_id, get_my_center, update_center, delete_center, create_request, get_pending_requests, approve_request, reject_request, get_precessed_requests} from '../controllers/veterinary_center_controller';
+import {get_all, get_by_name, get_by_id, get_my_centers, update_center, delete_center, create_request, get_pending_requests, approve_request, reject_request, get_precessed_requests} from '../controllers/veterinary_center_controller';
 
 // Zod validations
 import { create_center_schema, update_center_schema, get_center_schema } from "../zod_schemas/center_schema";
@@ -17,9 +17,9 @@ const router = Router();
 //  get all
 router.get('/', validate_token, get_all);
 
-// get my own veterinary center (used after a request gets approved, so the
-// owner can find and manage their new clinic)
-router.get('/me', validate_token, get_my_center);
+// get all my own veterinary centers (used after a request gets approved, so
+// the owner can find and manage their clinic(s); a user can own more than one)
+router.get('/me', validate_token, get_my_centers);
 
 // get by name
 router.get('/center_name/:name', validate_token, get_by_name);

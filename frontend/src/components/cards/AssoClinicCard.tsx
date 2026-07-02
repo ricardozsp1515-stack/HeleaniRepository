@@ -10,7 +10,7 @@ export default function AssociatedClinicCard({
     imageUrl = "https://images.unsplash.com/photo-1771304873117-7509c5521e1a",
 }: AssociatedClinicCardProps) {
     return (
-        <div className="border border-green-400 rounded-xl p-3 flex justify-between items-center">
+        <div className="border border-green-400 bg-white rounded-xl p-3 flex justify-between items-center">
 
             <div className="flex gap-3 items-center">
 

@@ -4,9 +4,11 @@ import AuthenticatedLayout from "../components/layout/AuthLayout";
 import PetHeaderCard from "../components/cards/PetHeaderCard";
 import OwnerCard from "../components/cards/OwnerCard";
 import { getPetById, getPetTypes, updatePet, deletePet } from "../services/petService";
+import { getCurrentUser } from "../services/authService";
 
 interface Pet {
   id: string;
+  user_id: string;
   name: string;
   breed: string;
   age: string;
@@ -14,7 +16,6 @@ interface Pet {
   image_url: string;
   created_at?: string;
   owner_name: string;
-  owner_email: string;
   owner_image_url: string;
 }
 
@@ -57,6 +58,15 @@ export default function PetProfile() {
       .then((data) => setPetTypes(data))
       .catch(() => setPetTypes([]));
   }, [id]);
+
+  // El lápiz de editar y el botón de eliminar solo aparecen si el usuario
+  // logueado es el dueño de la mascota. Esto es solo UX: el backend valida
+  // lo mismo comparando el token contra pets.user_id en update_pet y
+  // delete_pet, así que un usuario que no sea el dueño no logra nada
+  // aunque se salte esto.
+  const currentUser = getCurrentUser();
+  const isOwner = pet && currentUser && currentUser.id === pet.user_id;
+
 
   const handleEditClick = () => {
     if (!pet) return;
@@ -150,6 +160,7 @@ export default function PetProfile() {
           editedName={editName}
           onEditedNameChange={setEditName}
           onEditClick={handleEditClick}
+          canEdit={!!isOwner}
         />
 
         <div className="mt-8 border border-green-400 rounded-3xl p-4 flex flex-col gap-6 bg-white">
@@ -283,37 +294,40 @@ export default function PetProfile() {
           <section>
             <h3 className="text-2xl font-bold text-gray-700 mb-3">Dueño(a)</h3>
 
-            <Link to="/profile">
+            <Link to={isOwner ? "/profile" : `/user-profile/${pet.user_id}`}>
               <OwnerCard
                 name={pet.owner_name}
-                email={pet.owner_email}
+                subtitle="Ver perfil"
                 imageUrl={pet.owner_image_url}
               />
             </Link>
           </section>
 
-          {/* Eliminar mascota */}
-          <section>
-            <button
-              type="button"
-              onClick={() => setShowConfirm(true)}
-              className="
-                btn
-                w-full
-                bg-green-900
-                hover:bg-green-950
-                border-none
-                text-white
-                rounded-xl
-              "
-            >
-              Eliminar mascota
-            </button>
+          {/* Eliminar mascota: solo visible para el dueño. El backend
+          vuelve a validar que sea el dueño antes de borrar nada. */}
+          {isOwner && (
+            <section>
+              <button
+                type="button"
+                onClick={() => setShowConfirm(true)}
+                className="
+                  btn
+                  w-full
+                  bg-green-900
+                  hover:bg-green-950
+                  border-none
+                  text-white
+                  rounded-xl
+                "
+              >
+                Eliminar mascota
+              </button>
 
-            {deleteError && (
-              <p className="text-red-600 text-center mt-2">{deleteError}</p>
-            )}
-          </section>
+              {deleteError && (
+                <p className="text-red-600 text-center mt-2">{deleteError}</p>
+              )}
+            </section>
+          )}
         </div>
 
         {/* Modal de confirmación de borrado */}

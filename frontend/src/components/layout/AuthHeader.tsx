@@ -1,4 +1,5 @@
 import logoWhite from "../../assets/healani-logo-white.svg";
+import SearchBar from "../forms/SearchBar";
 
 export default function AuthHeader() {
   return (
@@ -52,36 +53,7 @@ export default function AuthHeader() {
       </div>
 
       {/* Barra de búsqueda */}
-      <div className="relative">
-
-        <input
-          type="text"
-          placeholder="Buscar veterinarios o clínicas..."
-          className="
-            input
-            input-bordered
-            w-full
-            rounded-xl
-            bg-white
-            text-black
-            pl-10
-            border-none
-          "
-        />
-
-        <span
-          className="
-            absolute
-            left-3
-            top-1/2
-            -translate-y-1/2
-            text-gray-500
-          "
-        >
-          🔍
-        </span>
-
-      </div>
+      <SearchBar />
 
     </header>
   );

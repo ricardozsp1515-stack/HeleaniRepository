@@ -16,6 +16,8 @@ import VetVerification from "./pages/VetVerification";
 import ClinicVerification from "./pages/ClinicVerification";
 import Information from "./pages/Information";
 import AdminDashboard from "./pages/AdminDashboard";
+import SearchResults from "./pages/SearchResults";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
         <Route path="/clinic-verification" element={<ClinicVerification />}/>
         <Route path="/information" element={<Information />}/>
         <Route path="/admin" element={<AdminDashboard />}/>
+        <Route path="/search" element={<SearchResults />}/>
+        <Route path="/user-profile/:id" element={<UserProfile />}/>
       </Routes>
     </BrowserRouter>
   );

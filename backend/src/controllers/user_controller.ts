@@ -159,6 +159,44 @@ export const get_by_id = async (req:Request, res:Response) => {
     }
 }
 
+// Get public profile by id
+
+/*
+    A diferencia de get_by_id (que es privado: solo el propio usuario o un admin puede
+    verlo, e incluye el email), esta funcion expone unicamente el nombre y la foto de
+    cualquier usuario del sistema. Se usa para mostrar el perfil publico de un usuario al
+    que se llega desde un resultado de busqueda o desde la card de "Dueño(a)" en el
+    perfil de una mascota, sin importar quien sea el usuario autenticado que la consulta.
+*/
+export const get_public_profile = async (req: Request, res: Response) => {
+    try {
+        // take user id from params
+        const user_id = String(req.params.id);
+
+        // fetch only the public fields
+        const results = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                image_url: images.url,
+            })
+            .from(users)
+            .innerJoin(images, eq(users.image_id, images.id))
+            .where(eq(users.id, user_id));
+
+        if (!results.length) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(results[0]);
+
+        // handle errors
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 // Get users by name Not used
 
 /*

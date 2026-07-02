@@ -10,6 +10,10 @@ interface PetHeaderCardProps {
   editedName?: string;
   onEditedNameChange?: (value: string) => void;
   onEditClick?: () => void;
+
+  // El lápiz solo debe verse si el usuario logueado es el dueño de la
+  // mascota; para cualquier otra persona el perfil es de solo lectura.
+  canEdit?: boolean;
 }
 
 export default function PetHeaderCard({
@@ -20,6 +24,7 @@ export default function PetHeaderCard({
   editedName = "",
   onEditedNameChange,
   onEditClick,
+  canEdit = false,
 }: PetHeaderCardProps) {
 
   const formattedDate = createdAt
@@ -73,7 +78,7 @@ export default function PetHeaderCard({
             )}
           </div>
 
-          {!isEditing && (
+          {!isEditing && canEdit && (
             <button
               type="button"
               onClick={onEditClick}

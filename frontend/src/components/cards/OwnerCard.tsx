@@ -1,12 +1,12 @@
 interface OwnerCardProps {
   name: string;
-  email: string;
+  subtitle: string;
   imageUrl: string;
 }
 
 export default function OwnerCard({
   name,
-  email,
+  subtitle,
   imageUrl,
 }: OwnerCardProps) {
   return (
@@ -25,7 +25,7 @@ export default function OwnerCard({
           </h3>
 
           <p className="text-sm text-gray-500">
-            {email}
+            {subtitle}
           </p>
         </div>
 

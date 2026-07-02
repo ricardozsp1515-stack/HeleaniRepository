@@ -7,7 +7,7 @@ import { Router } from "express";
 import { validateBody, validateParams, validateQuery } from '../middleware/validations';
 import { validate_token } from "../middleware/auth_validation";
 // controller
-import {get_all, get_by_id, update_user, delete_user} from '../controllers/user_controller'
+import {get_all, get_by_id, get_public_profile, update_user, delete_user} from '../controllers/user_controller'
 
 // Zod validations
 
@@ -25,6 +25,10 @@ router.get("/", validate_token, authorize_role(["admin"]), get_all);
 router.get("/get_user", validate_token, get_by_id);
 // Get user by id. Admin only!
 router.get("/get_user/:id", validate_token, authorize_role(["admin"]), validateParams(get_user_schema), get_by_id);
+
+// Get public profile (name + photo only) by id. Any authenticated user, used by
+// search results and by the "Dueño(a)" card on a pet's profile.
+router.get("/public/:id", validate_token, validateParams(get_user_schema), get_public_profile);
 
 
 /* Not used

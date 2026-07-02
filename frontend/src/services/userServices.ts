@@ -11,6 +11,16 @@ export function getProfile() {
 }
 
 
+// Trae el perfil publico (solo nombre y foto) de cualquier usuario, sin
+// importar quien sea el usuario autenticado que lo consulta. Se usa para
+// mostrar el perfil de un usuario al que se llega desde un resultado de
+// busqueda, o desde la card de "Dueño(a)" en el perfil de una mascota.
+export function getPublicProfile(id: string) {
+
+  return apiFetch(`/users/public/${id}`);
+
+}
+
 // Elimina por completo la cuenta del usuario autenticado: mascotas, citas,
 // comentarios, su perfil de veterinario (si lo tiene) y las clinicas de las
 // que sea dueño. El backend identifica al usuario a partir del token, por

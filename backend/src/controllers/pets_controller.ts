@@ -160,45 +160,17 @@ export const create_pet = async (req: Request, res: Response) => {
 // get pet by id
 
 /* 
-    This feature will allow users to access information about one of their pets.
-
-    Admin and Veterinarian only!
-    Regular users will only be able to access information about their own pets, but 
-    veterinarians and admins will be able to access any user's pets through query parameters.
+    Al igual que los perfiles de veterinarios y clinicas, el perfil de una mascota es
+    visible para cualquier usuario autenticado (por ejemplo, al llegar desde un resultado
+    de busqueda), sin importar si le pertenece o no. La restriccion de dueño solo aplica
+    a la hora de editar o eliminar (ver update_pet y delete_pet), no de visualizar.
 */
 export const get_pet_by_id = async (req: Request, res: Response) => {
 
     try {
-        // call function to get user data from token
-        const auth_user = await get_auth_user(req);
-
-        //Validate the user's role 
-
-        const [user_data] = await db
-            .select({ role_name: user_roles.name })
-            .from(users)
-            .innerJoin(user_roles, eq(users.role_id, user_roles.id))
-            .where(eq(users.id, auth_user.id));
-
-        // Verify that the user is an administrator or veterinarian.
-        const is_adorvet = user_data?.role_name === "admin" || user_data?.role_name === "Veterinarian";
-
-        /* 
-            If the user is an administrator or veterinarian and the `user` query parameter exists,
-            pets belonging to the user whose ID matches that parameter will be displayed;
-            otherwise, pets belonging to the user whose ID matches the authenticated user's ID will be displayed.
-        */
-        const user_id = is_adorvet && req.query.user
-            ? String(req.query.user)
-            : auth_user.id
-
         // take pet id
         const pet_id = String(req.params.id);
 
-        /* 
-            Verify that the pet exists and that the authentication user ID matches the pets user ID.
-            This prevents that pets of other users appears in wrong profile
-        */
         // alias de la tabla images para traer la foto de perfil del dueño,
         // sin chocar con el join que ya trae la foto de la mascota
         const owner_images = alias(images, "owner_images");
@@ -214,9 +186,11 @@ export const get_pet_by_id = async (req: Request, res: Response) => {
                 age: pets.age,
                 image_url: images.url,
                 created_at: pets.created_at,
-                // datos del dueño, para mostrarlos en la seccion "Dueño(a)" del perfil de la mascota
+                // datos del dueño, para mostrarlos en la seccion "Dueño(a)" del perfil de la mascota.
+                // No se incluye el email: este endpoint es visible para cualquier usuario
+                // autenticado (no solo el dueño), asi que exponer el correo aqui seria una
+                // fuga de datos privados del dueño hacia cualquiera que vea el perfil.
                 owner_name: users.name,
-                owner_email: users.email,
                 owner_image_url: owner_images.url
             })
             .from(pets)
@@ -224,9 +198,9 @@ export const get_pet_by_id = async (req: Request, res: Response) => {
             .innerJoin(images, eq(pets.image_id, images.id))
             .innerJoin(users, eq(pets.user_id, users.id))
             .innerJoin(owner_images, eq(users.image_id, owner_images.id))
-            .where(and(eq(pets.id, pet_id), eq(pets.user_id, user_id)));
+            .where(eq(pets.id, pet_id));
 
-        // If the user ID and the pet's user ID do not match, an error will be generated
+        // If no pet matches this id
         if (!results.length) {
             return res.status(404).json({ message: "Pet in not registered" });
         }

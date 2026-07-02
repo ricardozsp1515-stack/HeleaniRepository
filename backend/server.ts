@@ -8,6 +8,7 @@ import veterinarian_routes from './src/routes/veterinarian_routes';
 import veterinary_center_routes from './src/routes/veterinary_center_routes';
 import comments_routes from './src/routes/comments_routes';
 import appointments_routes from './src/routes/appointment_routes'
+import search_routes from './src/routes/search_routes'
 
 // use routes
 
@@ -34,6 +35,9 @@ app.use('/api/comments', comments_routes);
 
 // appoitment routes
 app.use('/api/appointments', appointments_routes);
+
+// global search routes (users, pets, veterinarians, veterinary centers)
+app.use('/api/search', search_routes);
 
 app.use('/api', (req, res) =>{
     res.status(404).json({ message: 'Endpoint not found' });

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AssociatedClinicCard from "../components/cards/AssoClinicCard";
+import CommentsSection from "../components/sections/CommentsSection";
 import { getVetById, getMyVetProfile } from "../services/vetService";
 import { getCenterById } from "../services/centerService";
 
@@ -166,6 +167,11 @@ export default function VetProfile() {
               </Link>
             </section>
           )}
+        </div>
+
+        {/* Reseñas */}
+        <div className="bg-white rounded-3xl p-4">
+          <CommentsSection targetType="veterinarian" targetId={vet.id} />
         </div>
       </main>
     </AuthLayout>

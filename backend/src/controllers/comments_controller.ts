@@ -90,7 +90,7 @@ export const get_vet_comments = async (req: Request, res: Response) => {
             user_id: row.user_id,
             stars: row.stars,
             comment: row.comment,
-            reated_at: row.created_at,
+            created_at: row.created_at,
         }))
 
         
@@ -139,7 +139,7 @@ export const get_center_comments = async (req: Request, res: Response) => {
             user_id: row.user_id,
             stars: row.stars,
             comment: row.comment,
-            reated_at: row.created_at,
+            created_at: row.created_at,
         }))
         // response with comments
         res.status(200).json(array_comments);

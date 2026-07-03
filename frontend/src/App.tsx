@@ -5,7 +5,6 @@ import Home from "./pages/Home";
 import RequestAppointment from "./pages/RequestAppointment";
 import VetAppointments from "./pages/VetAppointments";
 import Register from "./pages/Register";
-import DaisyTest from "./pages/Daisy_test";
 import Login from "./pages/Login";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import Profile from "./pages/Profile";
@@ -32,7 +31,6 @@ function App() {
         <Route path="/vet-appointments" element={<VetAppointments />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/test" element={<DaisyTest />} />
         <Route path="/terms" element={<TermsAndConditions />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/add-pet" element={<AddPet />} />

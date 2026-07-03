@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LandingPage from "./pages/LandingPage";
+import Home from "./pages/Home";
+import RequestAppointment from "./pages/RequestAppointment";
+import VetAppointments from "./pages/VetAppointments";
 import Register from "./pages/Register";
 import DaisyTest from "./pages/Daisy_test";
 import Login from "./pages/Login";
@@ -24,6 +27,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/appointments/new" element={<RequestAppointment />} />
+        <Route path="/vet-appointments" element={<VetAppointments />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/test" element={<DaisyTest />} />

@@ -93,13 +93,19 @@ export default function SideMenu() {
         <h2 className="text-4xl mb-4">General</h2>
 
         <li>
+          <Link to="/profile" className="text-white! text-2xl">
+            Ver perfil
+          </Link>
+        </li>
+
+        <li>
           <Link to="/configure-profile" className="text-white! text-2xl">
             Configurar perfil
           </Link>
         </li>
 
         <li>
-          <Link to="/" className="text-white! text-2xl">
+          <Link to="/home" className="text-white! text-2xl">
             Página principal
           </Link>
         </li>

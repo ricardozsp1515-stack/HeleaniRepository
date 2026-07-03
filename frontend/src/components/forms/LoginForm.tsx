@@ -31,7 +31,7 @@ export default function LoginForm() {
       );
 
 
-      navigate("/profile");
+      navigate("/home");
 
 
     }catch(error:any){

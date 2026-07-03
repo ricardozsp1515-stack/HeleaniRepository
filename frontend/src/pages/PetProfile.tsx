@@ -5,6 +5,9 @@ import PetHeaderCard from "../components/cards/PetHeaderCard";
 import OwnerCard from "../components/cards/OwnerCard";
 import { getPetById, getPetTypes, updatePet, deletePet } from "../services/petService";
 import { getCurrentUser } from "../services/authService";
+import { getVetById } from "../services/vetService";
+import { getPetAppointments, cancelAppointment } from "../services/appointmentService";
+import AppointmentCard from "../components/cards/AppointmentCard";
 
 interface Pet {
   id: string;
@@ -22,6 +25,22 @@ interface Pet {
 interface PetType {
   id: string;
   name: string;
+}
+
+interface AppointmentRow {
+  id: string;
+  veterinarian_id: string;
+  date: string;
+  status: string;
+  diagnosis: string | null;
+}
+
+interface EnrichedAppointment {
+  id: string;
+  date: string;
+  status: string;
+  diagnosis: string | null;
+  vetName: string;
 }
 
 export default function PetProfile() {
@@ -66,6 +85,63 @@ export default function PetProfile() {
   // aunque se salte esto.
   const currentUser = getCurrentUser();
   const isOwner = pet && currentUser && currentUser.id === pet.user_id;
+
+  // Citas de esta mascota, solo se piden y se muestran si el usuario
+  // logueado es el dueño: son datos médicos privados, no algo que deba
+  // ver cualquiera que llegue al perfil de la mascota desde una búsqueda.
+  const [appointments, setAppointments] = useState<EnrichedAppointment[]>([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [appointmentsError, setAppointmentsError] = useState("");
+
+  useEffect(() => {
+    if (!pet || !isOwner) return;
+
+    setLoadingAppointments(true);
+
+    getPetAppointments(pet.id).then(async (rows: AppointmentRow[]) => {
+      const enriched = await Promise.all(
+        rows.map(async (row) => {
+          try {
+            const vet = await getVetById(row.veterinarian_id);
+
+            return {
+              id: row.id,
+              date: row.date,
+              status: row.status,
+              diagnosis: row.diagnosis,
+              vetName: vet.name,
+            };
+          } catch {
+            return {
+              id: row.id,
+              date: row.date,
+              status: row.status,
+              diagnosis: row.diagnosis,
+              vetName: "Veterinario",
+            };
+          }
+        })
+      );
+
+      setAppointments(enriched);
+      setLoadingAppointments(false);
+    });
+  }, [pet, isOwner]);
+
+  const handleCancelAppointment = async (appointmentId: string) => {
+    setCancelingId(appointmentId);
+    setAppointmentsError("");
+
+    try {
+      await cancelAppointment(appointmentId);
+      setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+    } catch (err: any) {
+      setAppointmentsError(err.message);
+    } finally {
+      setCancelingId(null);
+    }
+  };
 
 
   const handleEditClick = () => {
@@ -302,6 +378,49 @@ export default function PetProfile() {
               />
             </Link>
           </section>
+
+          {/* Citas: solo visibles para el dueño, son datos médicos privados */}
+          {isOwner && (
+            <section>
+              <h3 className="text-2xl font-bold text-gray-700 mb-3">Citas</h3>
+
+              {loadingAppointments && (
+                <p className="text-center text-gray-500">Cargando...</p>
+              )}
+
+              {appointmentsError && (
+                <p className="text-red-600 text-center mb-2">
+                  {appointmentsError}
+                </p>
+              )}
+
+              {!loadingAppointments && appointments.length === 0 && (
+                <p className="text-center text-gray-500">
+                  Esta mascota no tiene citas registradas.
+                </p>
+              )}
+
+              {!loadingAppointments && appointments.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  {appointments.map((appointment) => (
+                    <AppointmentCard
+                      key={appointment.id}
+                      vetName={appointment.vetName}
+                      date={appointment.date}
+                      status={appointment.status}
+                      diagnosis={appointment.diagnosis}
+                      canceling={cancelingId === appointment.id}
+                      onCancel={
+                        appointment.status === "pending"
+                          ? () => handleCancelAppointment(appointment.id)
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Eliminar mascota: solo visible para el dueño. El backend
           vuelve a validar que sea el dueño antes de borrar nada. */}

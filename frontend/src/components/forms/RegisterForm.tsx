@@ -46,7 +46,7 @@ export default function RegisterForm() {
   await login(email, password);
 
 
-      navigate("/profile");
+      navigate("/home");
 
 
     }catch(error:any){

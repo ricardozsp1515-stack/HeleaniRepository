@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import AuthLayout from "../components/layout/AuthLayout";
 import AssociatedClinicCard from "../components/cards/AssoClinicCard";
-import { getVetById } from "../services/vetService";
+import { getVetById, getMyVetProfile } from "../services/vetService";
 import { getCenterById } from "../services/centerService";
 
 interface Vet {
@@ -25,10 +25,22 @@ interface Center {
 
 export default function VetProfile() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [vet, setVet] = useState<Vet | null>(null);
   const [center, setCenter] = useState<Center | null>(null);
   const [error, setError] = useState("");
+
+  // Mismo criterio que usa SideMenu.tsx para saber si el usuario logueado
+  // esta viendo su propio perfil de veterinario ("modo veterinario"): le
+  // pedimos su propio veterinarian.id y lo comparamos con el :id de la ruta
+  const [isOwnVetProfile, setIsOwnVetProfile] = useState(false);
+
+  useEffect(() => {
+    getMyVetProfile().then((myVet) => {
+      setIsOwnVetProfile(myVet?.id === id);
+    });
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -98,6 +110,25 @@ export default function VetProfile() {
 
             <span className="text-green-700 text-4xl">✔</span>
           </div>
+
+          {isOwnVetProfile && (
+            <button
+              type="button"
+              onClick={() => navigate("/vet-appointments")}
+              className="
+                btn
+                w-full
+                mt-4
+                bg-green-800
+                hover:bg-green-900
+                border-none
+                text-white!
+                rounded-xl
+              "
+            >
+              Revisar citas
+            </button>
+          )}
         </div>
 
         {/* Información */}

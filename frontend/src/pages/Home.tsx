@@ -42,54 +42,72 @@ export default function Home() {
   return (
     <AuthenticatedLayout>
       <main className="p-8 pb-24 flex flex-col gap-10">
-        {/* Botón de solicitar cita, siempre primero */}
-        <button
-          type="button"
-          onClick={() => navigate("/appointments/new")}
-          className="
-            btn
-            w-full
-            h-16
-            text-lg
-            bg-green-800
-            hover:bg-green-900
-            border-none
-            text-white
-            rounded-2xl
-          "
-        >
-          Solicitar cita
-        </button>
+        <div className="bg-white rounded-3xl p-4 flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold text-gray-700">
+            Veterinarios registrados
+          </h2>
 
-        <CarouselSection
-          title="Veterinarios registrados"
-          isEmpty={vets.length === 0}
-          emptyMessage="Todavía no se han registrado veterinarios."
-        >
-          {vets.map((vet) => (
-            <ProfileIconCard
-              key={vet.id}
-              to={`/vet-profile/${vet.id}`}
-              name={vet.name}
-              imageUrl={vet.image_url}
-            />
-          ))}
-        </CarouselSection>
+          <CarouselSection
+            isEmpty={vets.length === 0}
+            emptyMessage="Todavía no se han registrado veterinarios."
+          >
+            {vets.map((vet) => (
+              <ProfileIconCard
+                key={vet.id}
+                to={`/vet-profile/${vet.id}`}
+                name={vet.name}
+                imageUrl={vet.image_url}
+              />
+            ))}
+          </CarouselSection>
+        </div>
 
-        <CarouselSection
-          title="Clínicas registradas"
-          isEmpty={centers.length === 0}
-          emptyMessage="Todavía no se han registrado clínicas."
-        >
-          {centers.map((center) => (
-            <ProfileIconCard
-              key={center.id}
-              to={`/clinic-profile/${center.id}`}
-              name={center.name}
-              imageUrl={center.image_url}
-            />
-          ))}
-        </CarouselSection>
+        <div className="bg-white rounded-3xl p-4 flex flex-col gap-4">
+          <h2 className="text-2xl font-semibold text-gray-700">
+            Clínicas registradas
+          </h2>
+
+          <CarouselSection
+            isEmpty={centers.length === 0}
+            emptyMessage="Todavía no se han registrado clínicas."
+          >
+            {centers.map((center) => (
+              <ProfileIconCard
+                key={center.id}
+                to={`/clinic-profile/${center.id}`}
+                name={center.name}
+                imageUrl={center.image_url}
+              />
+            ))}
+          </CarouselSection>
+        </div>
+
+        {/* Solicitar cita, al final: caja blanca para mantener el mismo
+        contraste que usan las secciones de arriba */}
+        <div className="bg-white rounded-3xl p-6 flex flex-col items-center gap-4">
+          <p className="text-center text-gray-500">
+            Dale clic al botón de solicitar cita para agendar una cita para
+            tus mascotas con un veterinario.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/appointments/new")}
+            className="
+              btn
+              w-full
+              h-16
+              text-lg
+              bg-green-800
+              hover:bg-green-900
+              border-none
+              text-white
+              rounded-2xl
+            "
+          >
+            Solicitar cita
+          </button>
+        </div>
       </main>
     </AuthenticatedLayout>
   );

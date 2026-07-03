@@ -2,7 +2,6 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 
 interface CarouselSectionProps {
-  title: string;
   isEmpty: boolean;
   emptyMessage: string;
   children: ReactNode;
@@ -13,8 +12,11 @@ interface CarouselSectionProps {
 // No usa ninguna librería externa: el desplazamiento se hace con scroll
 // nativo + scroll-snap, y las flechas simplemente llaman a scrollBy sobre
 // el contenedor.
+//
+// El título y la caja blanca que envuelve la sección los maneja quien use
+// este componente (ver Home.tsx): así el título queda dentro de la misma
+// caja que el carrusel, en vez de vivir fuera de ella.
 export default function CarouselSection({
-  title,
   isEmpty,
   emptyMessage,
   children,
@@ -35,77 +37,89 @@ export default function CarouselSection({
     });
   };
 
+  if (isEmpty) {
+    return <p className="text-center text-gray-500 p-2">{emptyMessage}</p>;
+  }
+
   return (
-    <section>
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4">{title}</h2>
+    <div className="relative flex items-center">
+      {/* Flecha izquierda */}
+      <button
+        type="button"
+        onClick={() => scrollByAmount("left")}
+        aria-label="Desplazar a la izquierda"
+        className="
+          shrink-0
+          mr-1
+          z-10
+          flex
+          items-center
+          justify-center
+          text-green-700
+          hover:text-green-800
+        "
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-6 h-8"
+        >
+          <path d="M15 5 L8 12 L15 19" />
+        </svg>
+      </button>
 
-      {isEmpty ? (
-        <div className="bg-white rounded-3xl p-6">
-          <p className="text-center text-gray-500">{emptyMessage}</p>
-        </div>
-      ) : (
-        <div className="relative flex items-center">
-          {/* Flecha izquierda */}
-          <button
-            type="button"
-            onClick={() => scrollByAmount("left")}
-            aria-label={`Desplazar ${title} a la izquierda`}
-            className="
-              btn
-              btn-circle
-              btn-sm
-              bg-white
-              border-green-200
-              shadow-sm
-              shrink-0
-              mr-1
-              z-10
-            "
-          >
-            ‹
-          </button>
+      {/* Contenedor con scroll-snap, sin barra de scroll visible */}
+      <div
+        ref={scrollRef}
+        className="
+          flex
+          gap-4
+          overflow-x-auto
+          scroll-smooth
+          snap-x
+          snap-mandatory
+          py-2
+          px-1
+          [-ms-overflow-style:none]
+          [scrollbar-width:none]
+          [&::-webkit-scrollbar]:hidden
+        "
+      >
+        {children}
+      </div>
 
-          {/* Contenedor con scroll-snap, sin barra de scroll visible */}
-          <div
-            ref={scrollRef}
-            className="
-              flex
-              gap-4
-              overflow-x-auto
-              scroll-smooth
-              snap-x
-              snap-mandatory
-              py-2
-              px-1
-              [-ms-overflow-style:none]
-              [scrollbar-width:none]
-              [&::-webkit-scrollbar]:hidden
-            "
-          >
-            {children}
-          </div>
-
-          {/* Flecha derecha */}
-          <button
-            type="button"
-            onClick={() => scrollByAmount("right")}
-            aria-label={`Desplazar ${title} a la derecha`}
-            className="
-              btn
-              btn-circle
-              btn-sm
-              bg-white
-              border-green-200
-              shadow-sm
-              shrink-0
-              ml-1
-              z-10
-            "
-          >
-            ›
-          </button>
-        </div>
-      )}
-    </section>
+      {/* Flecha derecha */}
+      <button
+        type="button"
+        onClick={() => scrollByAmount("right")}
+        aria-label="Desplazar a la derecha"
+        className="
+          shrink-0
+          ml-1
+          z-10
+          flex
+          items-center
+          justify-center
+          text-green-700
+          hover:text-green-800
+        "
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-6 h-8"
+        >
+          <path d="M9 5 L16 12 L9 19" />
+        </svg>
+      </button>
+    </div>
   );
 }

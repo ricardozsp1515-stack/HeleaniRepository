@@ -30,7 +30,7 @@ export default function ProfileIconCard({
       "
     >
       <div className="avatar">
-        <div className="w-16 rounded-full ring ring-green-200">
+        <div className="w-16 rounded-2xl ring ring-green-200">
           <img src={imageUrl} alt={name} className="object-cover" />
         </div>
       </div>

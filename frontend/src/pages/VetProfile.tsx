@@ -130,6 +130,30 @@ export default function VetProfile() {
               Revisar citas
             </button>
           )}
+
+          {/* Mismo botón "Solicitar cita" que aparece en Home, pero ya
+          apuntando a este veterinario: al llegar a RequestAppointmentForm
+          via ?vet=<id>, el selector de veterinario queda preseleccionado.
+          No se muestra en el propio perfil (un veterinario no se agenda
+          cita a sí mismo). */}
+          {!isOwnVetProfile && (
+            <button
+              type="button"
+              onClick={() => navigate(`/appointments/new?vet=${vet.id}`)}
+              className="
+                btn
+                w-full
+                mt-4
+                bg-green-800
+                hover:bg-green-900
+                border-none
+                text-white!
+                rounded-xl
+              "
+            >
+              Solicitar cita
+            </button>
+          )}
         </div>
 
         {/* Información */}

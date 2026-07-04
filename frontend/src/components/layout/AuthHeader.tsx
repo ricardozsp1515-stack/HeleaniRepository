@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import logoWhite from "../../assets/healani-logo-white.svg";
 import SearchBar from "../forms/SearchBar";
 
@@ -8,7 +9,7 @@ export default function AuthHeader() {
       {/* Fila superior */}
       <div className="flex items-center justify-between">
 
-        <div className="flex items-center gap-2">
+        <Link to="/home" className="flex items-center gap-2">
 
           <img
             src={logoWhite}
@@ -28,7 +29,7 @@ export default function AuthHeader() {
 
           </div>
 
-        </div>
+        </Link>
 
         <label
           htmlFor="side-menu"

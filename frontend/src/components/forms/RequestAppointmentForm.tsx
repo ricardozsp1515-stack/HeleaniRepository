@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import RegisterInput from "./RegisterInput";
 
 import { getPets } from "../../services/petService";
@@ -20,12 +20,18 @@ interface Vet {
 export default function RequestAppointmentForm() {
   const navigate = useNavigate();
 
+  // Si se llega desde el perfil de un veterinario (botón "Solicitar cita"
+  // en VetProfile.tsx), la URL trae ?vet=<id> y lo usamos para
+  // preseleccionar ese veterinario en el selector de abajo.
+  const [searchParams] = useSearchParams();
+  const preselectedVetId = searchParams.get("vet") ?? "";
+
   const [pets, setPets] = useState<Pet[]>([]);
   const [vets, setVets] = useState<Vet[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [petId, setPetId] = useState("");
-  const [veterinarianId, setVeterinarianId] = useState("");
+  const [veterinarianId, setVeterinarianId] = useState(preselectedVetId);
   const [date, setDate] = useState("");
 
   const [error, setError] = useState("");
@@ -43,6 +49,16 @@ export default function RequestAppointmentForm() {
       }
     );
   }, []);
+
+  // Si el veterinario preseleccionado viene en la URL pero el selector
+  // todavía no tiene valor (por ejemplo, si el componente se remonta), lo
+  // volvemos a aplicar apenas ya tenemos la lista de veterinarios cargada.
+  useEffect(() => {
+    if (preselectedVetId && !veterinarianId) {
+      setVeterinarianId(preselectedVetId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectedVetId, vets]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
